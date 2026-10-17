@@ -122,9 +122,12 @@ guia/
 ├─ _estilo.css         Todo el CSS, común a portal y temas.
 ├─ _motor.js           Todo el JS, común a los temas:
 │                        · barra de progreso y botón "volver arriba"
+│                        · índice como panel deslizable en móvil (#tocBtn,
+│                          #sideOverlay, #sideClose abren/cierran #side)
 │                        · resaltado de la sección activa en el índice
 │                        · filtro del índice (#tocFilter)
 │                        · filtro del glosario (#glossFilter)
+│                        · tablas anchas con scroll horizontal propio (.tbl-scroll)
 │                        · buscador global (#docSearch / #docResults)
 │                        · tecla "/" para saltar al buscador
 │                        · expone window.__guiaUtil = { escapeHtml, rxEsc,
@@ -156,6 +159,7 @@ eliminarse y dejar solo la referencia externa.
 <div id="wrap">
 
   <aside id="side">
+    <button id="sideClose" aria-label="Cerrar índice">✕</button>
     <a class="backlink" href="index.html">Volver a la biblioteca</a>
     <h1>TÍTULO</h1>
     <p class="sub">Tema NN - Subtítulo</p>
@@ -183,6 +187,8 @@ eliminarse y dejar solo la referencia externa.
 </div>
 
 <button id="top" title="Volver arriba">^</button>
+<button id="tocBtn" title="Abrir índice" aria-expanded="false">☰ Índice</button>
+<div id="sideOverlay"></div>
 
 <script src="_motor.js"></script>
 <script>

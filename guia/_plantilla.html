@@ -14,12 +14,15 @@ MARCADORES A REEMPLAZAR
 
 QUE CONSERVAR SIN CAMBIOS (el motor y el portal dependen de ellos)
   <div id="prog">            barra de progreso superior
-  <aside id="side">          panel lateral
+  <aside id="side">          panel lateral (en movil es un drawer deslizable)
+  #sideClose                 boton "X" para cerrar el drawer en movil
   <a class="backlink">       enlace de vuelta al portal guia/index.html
   #docSearch + #docResults   buscador global (los llena _motor.js)
   #tocFilter + nav#toc       filtro de indice y lista de secciones
   <main id="main">           contenido; _motor.js recorre "main section[id]"
   <button id="top">          boton "volver arriba"
+  <button id="tocBtn">       boton flotante que abre el indice en movil
+  #sideOverlay                fondo oscuro del drawer en movil
   <script src="_motor.js">   motor compartido: indice, busqueda, progreso
 
 Cada tema enlaza SOLO _estilo.css y _motor.js. Si necesitas CSS nuevo, anadelo
@@ -68,6 +71,7 @@ ANTES DE PUBLICAR
 <div id="wrap">
 
 <aside id="side">
+  <button id="sideClose" aria-label="Cerrar índice">✕</button>
   <a class="backlink" href="index.html">Volver a la biblioteca</a>
   <h1>@@TITULO@@</h1>
   <p class="sub">@@NUM@@ - @@SUBTITULO@@</p>
@@ -128,6 +132,8 @@ ANTES DE PUBLICAR
 </div>
 
 <button id="top" title="Volver arriba">^</button>
+<button id="tocBtn" title="Abrir índice" aria-expanded="false">☰ Índice</button>
+<div id="sideOverlay"></div>
 
 <script src="_motor.js"></script>
 <script>

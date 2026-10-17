@@ -28,6 +28,75 @@
   }
 
   /* ============================================================
+     0.3 Scroll propio para saltos internos (reemplaza el nativo
+     "scroll-behavior: smooth", que en documentos largos se siente
+     lento y sin control sobre la curva de animación).
+     ============================================================ */
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+  function smoothScrollTo(targetY, duration) {
+    var startY = window.scrollY || document.documentElement.scrollTop || 0;
+    var diff = targetY - startY;
+    duration = duration || 420;
+    if (Math.abs(diff) < 2) return;
+    var start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      var p = Math.min(1, (ts - start) / duration);
+      window.scrollTo(0, startY + diff * easeOutCubic(p));
+      if (p < 1) window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'), function (a) {
+    var id = a.getAttribute("href").slice(1);
+    if (!id) return;
+    a.addEventListener("click", function (e) {
+      var target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 12;
+      smoothScrollTo(top);
+      if (window.history && window.history.pushState) {
+        window.history.pushState(null, "", "#" + id);
+      }
+    });
+  });
+
+  /* ============================================================
+     0.4 Índice como panel deslizable en móvil (abre/cierra #side)
+     ============================================================ */
+  var side = document.getElementById("side");
+  var tocBtn = document.getElementById("tocBtn");
+  var sideOverlay = document.getElementById("sideOverlay");
+  var sideClose = document.getElementById("sideClose");
+
+  if (side && tocBtn && sideOverlay) {
+    var openSide = function () {
+      side.classList.add("open");
+      sideOverlay.classList.add("open");
+      tocBtn.setAttribute("aria-expanded", "true");
+    };
+    var closeSide = function () {
+      side.classList.remove("open");
+      sideOverlay.classList.remove("open");
+      tocBtn.setAttribute("aria-expanded", "false");
+    };
+    tocBtn.addEventListener("click", function () {
+      if (side.classList.contains("open")) closeSide(); else openSide();
+    });
+    sideOverlay.addEventListener("click", closeSide);
+    if (sideClose) sideClose.addEventListener("click", closeSide);
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeSide();
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#toc a"), function (a) {
+      a.addEventListener("click", closeSide);
+    });
+  }
+
+  /* ============================================================
      0.5 Tablas responsivas: en móvil hacen scroll horizontal propio
      en vez de desbordar toda la página.
      ============================================================ */
@@ -85,7 +154,7 @@
   onScroll();
 
   topBtn.addEventListener("click", function () {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    smoothScrollTo(0);
   });
 
   /* ============================================================
@@ -199,7 +268,7 @@
     var target = document.getElementById(id);
     if (target) {
       var top = target.getBoundingClientRect().top + window.scrollY - 12;
-      window.scrollTo({ top: top, behavior: "smooth" });
+      smoothScrollTo(top);
     }
   });
 
