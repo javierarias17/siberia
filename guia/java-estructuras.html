@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estructuras de datos en Java - Biblioteca de estudio</title>
+<link rel="stylesheet" href="_estilo.css">
+</head>
+<body>
+<div id="prog"></div>
+<div id="wrap">
+
+<aside id="side">
+  <a class="backlink" href="index.html">Volver a la biblioteca</a>
+  <h1>Estructuras de datos en Java</h1>
+  <p class="sub">Tema 02 - Colecciones y su interior</p>
+  <input id="docSearch" placeholder="Buscar en toda la guía..." autocomplete="off">
+  <div id="docResults"></div>
+  <input id="tocFilter" placeholder="Filtrar índice..." autocomplete="off">
+  <nav id="toc">
+    <div class="grp">Fundamentos</div>
+    <a href="#intro">Cómo usar este tema</a>
+    <a href="#c1">1. Qué es una estructura de datos</a>
+    <a href="#c2">2. El marco de colecciones</a>
+    <a href="#c3">3. Complejidad (Big-O) sin matemáticas</a>
+    <div class="grp">Las cuatro familias</div>
+    <a href="#c4">4. List: orden y posición</a>
+    <a href="#c5">5. Set: sin repetidos</a>
+    <a href="#c6">6. Map: clave a valor</a>
+    <a href="#c7">7. Queue y Deque: colas y pilas</a>
+    <div class="grp">Por dentro</div>
+    <a href="#c8">8. El array dinámico (ArrayList)</a>
+    <a href="#c9">9. La lista enlazada (LinkedList)</a>
+    <a href="#c10">10. La tabla hash (HashMap)</a>
+    <a href="#c11">11. El árbol rojo-negro (TreeMap)</a>
+    <div class="grp">Práctica</div>
+    <a href="#c12">12. equals() y hashCode()</a>
+    <a href="#c13">13. Cómo elegir una colección</a>
+    <a href="#c14">14. Errores clásicos</a>
+    <a href="#c15">15. Java moderno y concurrencia</a>
+    <div class="grp">Apéndices</div>
+    <a href="#apa">A. Chuleta de complejidades</a>
+    <a href="#apb">B. Chuleta de imports</a>
+    <a href="#apc">C. Cuándo NO usar cada una</a>
+    <div class="grp">Consulta</div>
+    <a href="#glosario">Glosario A–Z</a>
+    <a href="#refs">Referencias</a>
+    <a href="#herramientas">Herramientas interactivas</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<header class="cover inner">
+  <div class="kicker">Tema 02</div>
+  <h1>Estructuras de datos en Java</h1>
+  <p>Qué colección usar, por qué, y qué pasa por dentro cuando la usas. Desde <code>ArrayList</code> hasta <code>TreeMap</code>, con su <em>import</em> exacto, su complejidad Big-O, sus características y el momento en que cada una es la herramienta correcta. Y debajo del capó: el arreglo que se duplica, los nodos que se apuntan, los cubos de una tabla hash y el árbol que se rebalancea solo.</p>
+  <p class="meta">15 secciones · 3 apéndices · glosario A–Z · 3 herramientas interactivas<br>Nivel: desde cero, con base de programación</p>
+</header>
+
+<section id="intro" class="inner">
+  <h2><span class="num">PRÓLOGO</span>Cómo usar este tema</h2>
+  <p>Una <strong>estructura de datos</strong> es una forma de guardar cosas juntas. Elegir mal no rompe el programa: simplemente lo vuelve lento. Un proceso que tarda 2 segundos puede tardar 4 horas con la colección equivocada, sin un solo error de compilación. Por eso este tema no enseña "la lista de clases de Java", sino <em>cuándo</em> cada una gana y <em>por qué</em>.</p>
+  <p>El tema tiene tres bloques:</p>
+  <table>
+    <thead><tr><th>Bloque</th><th>Secciones</th><th>Qué resuelve</th></tr></thead>
+    <tbody>
+      <tr><td>Fundamentos</td><td><a href="#c1">1</a>–<a href="#c3">3</a></td><td>Qué es una estructura de datos y qué significa "ser lento".</td></tr>
+      <tr><td>Las cuatro familias</td><td><a href="#c4">4</a>–<a href="#c7">7</a></td><td>Qué usar: <code>List</code>, <code>Set</code>, <code>Map</code> o <code>Queue</code>, con import y complejidad.</td></tr>
+      <tr><td>Por dentro</td><td><a href="#c8">8</a>–<a href="#c11">11</a></td><td>Cómo está implementada cada una: arreglo, nodos, cubos, árbol.</td></tr>
+    </tbody>
+  </table>
+  <p>Si ya programas en Java y solo buscas una respuesta rápida, salta a la <a href="#apb">chuleta de imports</a> o a la <a href="#apa">chuleta de complejidades</a>. Si vienes a entender, lee en orden.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Guardar cosas es fácil; encontrarlas es el problema. Una pila de hojas en el suelo, una carpeta con separadores, una guía telefónica ordenada por apellido y una caja con casillas etiquetadas guardan <em>lo mismo</em>. Lo que cambia es cuánto tardas en <strong>encontrar</strong> lo que buscas. Eso es exactamente lo que distingue a las colecciones de Java.</p>
+  </div>
+
+  <h3>Las cinco convenciones visuales de este tema</h3>
+  <div class="box analogy"><span class="lbl">Analogía</span><p>Un ejemplo de la vida real que explica el concepto.</p></div>
+  <div class="box real"><span class="lbl">Ejemplo real</span><p>Datos, números internos o comportamiento verificado de la JDK.</p></div>
+  <div class="box warn"><span class="lbl">Ojo con esto</span><p>Errores de concepto frecuentes. Si piensas distinto, corrige aquí.</p></div>
+  <div class="box danger"><span class="lbl">Trampa</span><p>Algo que compila, corre, y sin embargo está mal.</p></div>
+  <div class="box key"><span class="lbl">Idea clave</span><p>El resumen de un párrafo. Lo que hay que recordar.</p></div>
+</section>
+
+<section id="c1" class="inner">
+  <h2><span class="num">SECCIÓN 1</span>Qué es una estructura de datos</h2>
+
+  <p>Un computador guarda todo en memoria como una fila larga de bytes numerados. Cuando pides "guardar 20 nombres", el sistema te da un trozo de esa fila. La pregunta es: <strong>¿en qué orden y con qué forma organizas ese trozo?</strong> Esa decisión es la estructura de datos.</p>
+  <p>Hay tres operaciones que hacen el 90 % del trabajo en cualquier programa:</p>
+  <ul>
+    <li><strong>Insertar</strong>: meter un dato nuevo.</li>
+    <li><strong>Buscar</strong>: saber si un dato está, o cuál es su valor asociado.</li>
+    <li><strong>Recorrer</strong>: pasar por todos, uno por uno.</li>
+  </ul>
+  <p>Una colección no es "mejor" en abstracto: es mejor <em>para una mezcla concreta de estas tres</em>. <code>ArrayList</code> es excelente recorriendo y accediendo por posición; mala insertando en medio. <code>HashMap</code> es excelente buscando; no tiene noción de posición.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>No existe "la mejor colección". Existe <strong>la mejor colección para tu patrón de uso</strong>: cuántos datos, cuántas inserciones, cuántas búsquedas y en qué orden recorres.</p>
+  </div>
+
+  <h3>Un ejemplo que duele</h3>
+  <p>Supón que tienes 100 000 correos y quieres saber si uno ya existe antes de añadirlo. Con una lista:</p>
+<pre><span class="c">// MAL: recorre la lista entera por cada correo nuevo</span>
+<span class="b">List</span>&lt;<span class="b">String</span>&gt; correos = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();
+<span class="g">for</span> (<span class="b">String</span> c : entrantes) {
+    <span class="g">if</span> (correos.<span class="y">contains</span>(c)) <span class="g">continue</span>;   <span class="c">// O(n): mira todos</span>
+    correos.<span class="y">add</span>(c);
+}
+<span class="c">// 100 000 correos: hasta 100 000 x 100 000 / 2 comparaciones</span></pre>
+  <p>Con un <code>HashSet</code>, la misma tarea no recorre nada:</p>
+<pre><span class="c">// BIEN: la búsqueda es casi instantánea y los duplicados se ignoran solos</span>
+<span class="b">Set</span>&lt;<span class="b">String</span>&gt; correos = <span class="g">new</span> <span class="b">HashSet</span>&lt;&gt;();
+<span class="g">for</span> (<span class="b">String</span> c : entrantes) {
+    correos.<span class="y">add</span>(c);   <span class="c">// O(1) promedio</span>
+}</pre>
+  <p>El resultado es el mismo. El tiempo, no. Esa diferencia es todo este tema.</p>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué "usar la colección más nueva" no es un buen criterio?<br><em>Porque lo que importa es el patrón de uso (insertar, buscar, recorrer), no la antigüedad. Una clase vieja puede ser la correcta.</em></li>
+        <li>Menciona dos operaciones que casi siempre quieres que sean rápidas.<br><em>Buscar y acceder; también insertar al final en colecciones que crecen.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c2" class="inner">
+  <h2><span class="num">SECCIÓN 2</span>El marco de colecciones: interfaces vs implementaciones</h2>
+
+  <p>Java separa dos cosas que en otros lenguajes van juntas: <strong>qué puedes hacer</strong> (la interfaz) y <strong>cómo lo hace</strong> (la implementación). Tú programas contra la interfaz; eliges la implementación al construir el objeto.</p>
+
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; nombres = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();        <span class="c">// interfaz List, clase ArrayList</span>
+<span class="b">Map</span>&lt;<span class="b">String</span>, <span class="b">Integer</span>&gt; edades = <span class="g">new</span> <span class="b">HashMap</span>&lt;&gt;();   <span class="c">// interfaz Map, clase HashMap</span></pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Declara siempre con la <strong>interfaz</strong> (<code>List</code>, <code>Set</code>, <code>Map</code>, <code>Queue</code>) y construye con la <strong>clase</strong> (<code>ArrayList</code>, <code>HashSet</code>…). Así puedes cambiar de implementación tocando una sola línea.</p>
+  </div>
+
+  <h3>La jerarquía, de un vistazo</h3>
+<pre>Iterable&lt;E&gt;
+└── Collection&lt;E&gt;
+    ├── List&lt;E&gt;      orden + posición + repetidos permitidos
+    ├── Set&lt;E&gt;       sin repetidos (a lo sumo un elemento "igual")
+    └── Queue&lt;E&gt;     orden de atención (FIFO, LIFO, prioridad)
+        └── Deque&lt;E&gt;  doble extremo (cola y pila)
+
+Map&lt;K,V&gt;   NO es un Collection. No se recorre con for-each directamente.</pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>Map</code> no hereda de <code>Collection</code>. Es una familia aparte porque guarda <em>pares</em>. No puedes escribir <code>for (var x : unMap)</code>; iteras sobre <code>unMap.keySet()</code>, <code>unMap.values()</code> o <code>unMap.entrySet()</code>.</p>
+  </div>
+
+  <h3>Los paquetes (de dónde viene cada import)</h3>
+  <table>
+    <thead><tr><th>Paquete</th><th>Qué contiene</th><th>Ejemplos</th></tr></thead>
+    <tbody>
+      <tr><td><code>java.util</code></td><td>Las colecciones básicas y sus utilidades</td><td><code>ArrayList</code>, <code>HashMap</code>, <code>TreeSet</code>, <code>ArrayDeque</code>, <code>Collections</code>, <code>Arrays</code></td></tr>
+      <tr><td><code>java.util.concurrent</code></td><td>Versiones seguras para varios hilos</td><td><code>ConcurrentHashMap</code>, <code>CopyOnWriteArrayList</code>, <code>ArrayBlockingQueue</code></td></tr>
+      <tr><td><code>java.util.stream</code></td><td>Procesamiento declarativo de colecciones</td><td><code>Stream</code>, <code>Collectors</code></td></tr>
+      <tr><td><code>java.util.function</code></td><td>Las funciones que usan las colecciones</td><td><code>Function</code>, <code>Predicate</code>, <code>Consumer</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El 95 % del código del día a día se resuelve con tres imports:</p>
+<pre><span class="g">import</span> java.util.<span class="b">List</span>;
+<span class="g">import</span> java.util.<span class="b">ArrayList</span>;
+<span class="g">import</span> java.util.<span class="b">Map</span>;</pre>
+    <p>El resto (Set, Deque, TreeMap, concurrentes) se añade según necesidad. La <a href="#apb">chuleta de imports</a> los lista todos.</p>
+  </div>
+
+  <details class="saber"><summary>Saber más: por qué existen las interfaces aunque solo uses una implementación</summary>
+    <div class="body">
+      <p>Tres razones prácticas:</p>
+      <ul>
+        <li><strong>Sustitución</strong>: cambiar <code>ArrayList</code> por <code>LinkedList</code>, o <code>HashSet</code> por <code>LinkedHashSet</code>, sin tocar el resto del código.</li>
+        <li><strong>Contratos</strong>: un método que recibe <code>List&lt;String&gt;</code> acepta cualquier lista; uno que recibe <code>ArrayList&lt;String&gt;</code> obliga al que llama a usar esa clase exacta.</li>
+        <li><strong>Vistas y envoltorios</strong>: <code>Collections.unmodifiableList(...)</code> devuelve una <code>List</code> de solo lectura; <code>List.of(...)</code> devuelve una lista inmutable. Ambas encajan donde esperabas <code>List</code>.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿<code>Map</code> es una <code>Collection</code>?<br><em>No. Es una jerarquía aparte que guarda pares clave y valor.</em></li>
+        <li>¿En qué paquete vive <code>ConcurrentHashMap</code>?<br><em><code>java.util.concurrent</code>.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c3" class="inner">
+  <h2><span class="num">SECCIÓN 3</span>Complejidad (Big-O) sin matemáticas</h2>
+
+  <p>Big-O no mide segundos: mide <strong>cómo crece el trabajo cuando crecen los datos</strong>. Se escribe <code>O(...)</code> y dentro va lo que domina cuando el número de elementos <code>n</code> se hace grande.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Buscar una palabra en un diccionario abriéndolo por la mitad y descartando la mitad cada vez: con 1000 páginas tardas unas 10 aperturas. Buscar en una lista sin orden hasta encontrarla: con mala suerte, 1000. La primera crece con el <em>logaritmo</em> de las páginas; la segunda, con el <em>número</em> de páginas. Eso es <code>O(log n)</code> contra <code>O(n)</code>.</p>
+  </div>
+
+  <h3>Las complejidades que verás en este tema</h3>
+  <table>
+    <thead><tr><th>Notación</th><th>Nombre</th><th>Qué significa</th><th>n = 1 000</th><th>n = 1 000 000</th></tr></thead>
+    <tbody>
+      <tr><td><code>O(1)</code></td><td>Constante</td><td>Da igual cuántos datos haya: tarda lo mismo.</td><td>1</td><td>1</td></tr>
+      <tr><td><code>O(log n)</code></td><td>Logarítmica</td><td>Cada paso descarta la mitad.</td><td>~10</td><td>~20</td></tr>
+      <tr><td><code>O(n)</code></td><td>Lineal</td><td>Mira todos, una vez.</td><td>1 000</td><td>1 000 000</td></tr>
+      <tr><td><code>O(n log n)</code></td><td>Casi lineal</td><td>Ordenar bien: el mejor orden posible en general.</td><td>~10 000</td><td>~20 000 000</td></tr>
+      <tr><td><code>O(n²)</code></td><td>Cuadrática</td><td>Por cada uno, mira todos los demás.</td><td>1 000 000</td><td>10<sup>12</sup></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Big-O <strong>ignora las constantes</strong>. Un <code>O(1)</code> puede costar 2 nanosegundos y otro <code>O(1)</code> unos 200, pero ambos son constantes. Para <code>n</code> pequeños, una estructura <code>O(n)</code> con constante diminuta puede ganarle a una <code>O(log n)</code> más pesada. Big-O decide <em>a partir de cierto tamaño</em>.</p>
+  </div>
+
+  <h3>Amortizado: el "promedio a la larga"</h3>
+  <p>Algunas operaciones a veces cuestan mucho y casi siempre casi nada. <code>ArrayList.add</code> al final es <code>O(1)</code> <em>amortizado</em>: casi siempre es instantáneo, pero de vez en cuando hay que copiar todo el arreglo a uno más grande. Ese "de vez en cuando", repartido entre todas las inserciones, sigue dando <code>O(1)</code>.</p>
+
+  <h3>Peor caso vs caso promedio</h3>
+  <p>La tabla hash es <code>O(1)</code> <em>promedio</em>. Si todos los datos caen en el mismo cubo por una función de hash terrible, degenera. Java mitiga eso (ver <a href="#c10">sección 10</a>), pero el peor caso teórico existe.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Cuando veas "complejidad", pregúntate <strong>promedio o peor caso</strong>, y <strong>amortizado o por operación</strong>. Las tres respuestas pueden ser distintas para el mismo método.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿<code>O(1)</code> significa "instantáneo"?<br><em>No. Significa que el tiempo no crece con n. Puede ser rápido o no, pero constante.</em></li>
+        <li>¿Por qué <code>ArrayList.add</code> al final es <code>O(1)</code> amortizado y no <code>O(n)</code>?<br><em>Porque la copia al crecer es ocasional y su costo se reparte entre muchísimas inserciones baratas.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c4" class="inner">
+  <h2><span class="num">SECCIÓN 4</span>List: orden y posición</h2>
+
+  <p>Una <code>List</code> es una secuencia <strong>ordenada</strong> y <strong>con posición</strong>. El elemento 0, el 1, el 2… Puede haber repetidos, y el orden en que metiste las cosas se conserva.</p>
+  <p><strong>Import:</strong> <code>java.util.List</code> (interfaz) y alguna de estas implementaciones de <code>java.util</code>:</p>
+
+  <table>
+    <thead><tr><th>Implementación</th><th>Por dentro</th><th>get(i)</th><th>add(final)</th><th>add(i, e)</th><th>remove(i)</th><th>contains</th></tr></thead>
+    <tbody>
+      <tr><td><code>ArrayList</code></td><td>Arreglo dinámico</td><td><code>O(1)</code></td><td><code>O(1)</code> amort.</td><td><code>O(n)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr>
+      <tr><td><code>LinkedList</code></td><td>Lista doblemente enlazada</td><td><code>O(n)</code></td><td><code>O(1)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr>
+      <tr><td><code>Vector</code></td><td>Arreglo, <em>sincronizado</em></td><td><code>O(1)</code></td><td><code>O(1)</code> amort.</td><td><code>O(n)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr>
+      <tr><td><code>CopyOnWriteArrayList</code></td><td>Arreglo que se copia al escribir</td><td><code>O(1)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td><td><code>O(n)</code></td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="g">import</span> java.util.<span class="b">List</span>;
+<span class="g">import</span> java.util.<span class="b">ArrayList</span>;
+<span class="g">import</span> java.util.<span class="b">LinkedList</span>;
+<span class="g">import</span> java.util.<span class="b">Vector</span>;                  <span class="c">// legado; casi nunca</span>
+<span class="g">import</span> java.util.concurrent.<span class="b">CopyOnWriteArrayList</span>;</pre>
+
+  <div class="box key"><span class="lbl">Cuándo usar <code>ArrayList</code></span>
+    <p>Por defecto, casi siempre. Si dudas, es un <code>ArrayList</code>. Gana cuando <strong>lees o recorres mucho</strong> y añades al final. El acceso por índice es instantáneo y los datos están contiguos en memoria, lo que la hace muy amigable para la caché de la CPU.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Cuándo usar <code>LinkedList</code></span>
+    <p>Casi nunca como <code>List</code>. Solo tiene sentido si <strong>insertas y eliminas muchísimo en los extremos</strong> y casi nunca accedes por índice. En la práctica, para eso se usa <code>ArrayDeque</code> (sección <a href="#c7">7</a>); <code>LinkedList</code> gasta mucha más memoria por elemento.</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>"<code>LinkedList</code> es más rápido para insertar" es cierto solo si <em>ya estás parado en el nodo</em>. Para insertar en la posición <code>i</code> primero hay que <strong>caminar</strong> hasta <code>i</code>, y eso es <code>O(n)</code>. En un <code>ArrayList</code>, insertar en medio también es <code>O(n)</code> por el desplazamiento, pero con una constante mucho menor. Por eso <code>ArrayList</code> suele ganar incluso insertando.</p>
+  </div>
+
+  <h3>Ejemplo</h3>
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; pendientes = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();
+pendientes.<span class="y">add</span>(<span class="r">"comprar pan"</span>);        <span class="c">// al final: O(1)</span>
+pendientes.<span class="y">add</span>(<span class="r">"regar plantas"</span>);
+pendientes.<span class="y">add</span>(0, <span class="r">"urgente"</span>);         <span class="c">// al inicio: O(n), desplaza todo</span>
+<span class="b">String</span> primero = pendientes.<span class="y">get</span>(0);     <span class="c">// O(1)</span>
+<span class="g">for</span> (<span class="b">String</span> p : pendientes) { ... }    <span class="c">// O(n)</span></pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Recorrer un <code>LinkedList</code> con un <code>for</code> por índice es un desastre silencioso:</p>
+<pre><span class="c">// MAL: get(i) es O(n), así que el bucle entero es O(n^2)</span>
+<span class="g">for</span> (<span class="b">int</span> i = 0; i &lt; lista.<span class="y">size</span>(); i++) {
+    <span class="b">String</span> x = lista.<span class="y">get</span>(i);
+}
+<span class="c">// BIEN: el for-each usa el iterador, que avanza con punteros: O(n)</span>
+<span class="g">for</span> (<span class="b">String</span> x : lista) { ... }</pre>
+    <p>Con <code>ArrayList</code> ambos bucles dan <code>O(n)</code>. Con <code>LinkedList</code>, el primero es <code>O(n²)</code>. Con 100 000 elementos, esa diferencia es de unos 100 000 a 1.</p>
+  </div>
+
+  <details class="saber"><summary>Saber más: listas inmutables y de tamaño fijo</summary>
+    <div class="body">
+      <ul>
+        <li><code>Arrays.asList(a, b, c)</code> (import <code>java.util.Arrays</code>) crea una lista de <strong>tamaño fijo</strong>: puedes hacer <code>set</code>, pero <code>add</code> y <code>remove</code> lanzan <code>UnsupportedOperationException</code>.</li>
+        <li><code>List.of(a, b, c)</code> (Java 9+) crea una lista <strong>inmutable</strong>: ni <code>set</code> ni <code>add</code>. Además rechaza <code>null</code>.</li>
+        <li><code>Collections.unmodifiableList(otra)</code> devuelve una <strong>vista</strong> de solo lectura: si la lista original cambia, la vista también, pero no puedes escribir a través de ella.</li>
+      </ul>
+      <p>Las tres son ideales para devolver datos desde un método sin exponer tu estado interno.</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Tu programa accede mucho por índice y añade al final. ¿<code>ArrayList</code> o <code>LinkedList</code>?<br><em><code>ArrayList</code>: acceso por índice <code>O(1)</code> y añadido al final amortizado <code>O(1)</code>.</em></li>
+        <li>¿Por qué el bucle por índice sobre un <code>LinkedList</code> es peligroso?<br><em>Porque <code>get(i)</code> recorre desde un extremo: cada acceso cuesta <code>O(n)</code> y el bucle entero <code>O(n²)</code>.</em></li>
+        <li>¿<code>List.of(...)</code> permite <code>add</code>?<br><em>No: es inmutable.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c5" class="inner">
+  <h2><span class="num">SECCIÓN 5</span>Set: colecciones sin repetidos</h2>
+
+  <p>Un <code>Set</code> es una colección donde <strong>cada valor aparece una sola vez</strong>. Si intentas añadir algo que ya está, el <code>add</code> devuelve <code>false</code> y no cambia nada. No tiene índices: no existe "el elemento 3".</p>
+  <p><strong>Import:</strong> <code>java.util.Set</code> y una implementación de <code>java.util</code>:</p>
+
+  <table>
+    <thead><tr><th>Implementación</th><th>Por dentro</th><th>add / contains / remove</th><th>Orden de iteración</th><th>Admite null</th></tr></thead>
+    <tbody>
+      <tr><td><code>HashSet</code></td><td>Tabla hash</td><td><code>O(1)</code> promedio</td><td>Sin orden garantizado</td><td>Sí (uno)</td></tr>
+      <tr><td><code>LinkedHashSet</code></td><td>Tabla hash + lista enlazada</td><td><code>O(1)</code> promedio</td><td>Orden de inserción</td><td>Sí (uno)</td></tr>
+      <tr><td><code>TreeSet</code></td><td>Árbol rojo-negro</td><td><code>O(log n)</code></td><td>Ordenado (natural o <code>Comparator</code>)</td><td>No</td></tr>
+      <tr><td><code>EnumSet</code></td><td>Vector de bits</td><td><code>O(1)</code></td><td>Orden de declaración del enum</td><td>No</td></tr>
+      <tr><td><code>CopyOnWriteArraySet</code></td><td>Arreglo que se copia</td><td><code>O(n)</code></td><td>Inserción</td><td>Sí</td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="g">import</span> java.util.<span class="b">Set</span>;
+<span class="g">import</span> java.util.<span class="b">HashSet</span>;
+<span class="g">import</span> java.util.<span class="b">LinkedHashSet</span>;
+<span class="g">import</span> java.util.<span class="b">TreeSet</span>;
+<span class="g">import</span> java.util.<span class="b">EnumSet</span>;</pre>
+
+  <div class="box key"><span class="lbl">Cuándo usar cada uno</span>
+    <ul>
+      <li><code>HashSet</code> → por defecto. Solo quieres saber "¿ya está?" y no te importa el orden.</li>
+      <li><code>LinkedHashSet</code> → quieres quitar duplicados <strong>conservando el orden</strong> de aparición. Es el "quitar duplicados sin perder el orden" que casi siempre buscas.</li>
+      <li><code>TreeSet</code> → necesitas el conjunto <strong>siempre ordenado</strong>, o consultas como "el menor", "el mayor", "el siguiente a este".</li>
+      <li><code>EnumSet</code> → si los elementos son de un <code>enum</code>. Es la más rápida y la que menos memoria usa; de hecho no existe mejor forma de guardar un subconjunto de un enum.</li>
+    </ul>
+  </div>
+
+  <h3>Ejemplo: quitar duplicados conservando el orden</h3>
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; conRepetidos = <span class="b">List</span>.<span class="y">of</span>(<span class="r">"b"</span>, <span class="r">"a"</span>, <span class="r">"b"</span>, <span class="r">"c"</span>, <span class="r">"a"</span>);
+
+<span class="b">Set</span>&lt;<span class="b">String</span>&gt; unicos = <span class="g">new</span> <span class="b">LinkedHashSet</span>&lt;&gt;(conRepetidos);
+<span class="c">// unicos = [b, a, c]  sin repetidos y en el orden original</span>
+
+<span class="b">Set</span>&lt;<span class="b">String</span>&gt; ordenado = <span class="g">new</span> <span class="b">TreeSet</span>&lt;&gt;(conRepetidos);
+<span class="c">// ordenado = [a, b, c]  alfabético</span></pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>HashSet</code> no promete ningún orden, y el orden puede <em>cambiar</em> cuando el conjunto crece (al redimensionar la tabla). Nunca produzcas una salida visible al usuario iterando un <code>HashSet</code> si el orden importa: dará resultados que "a veces" salen distintos y son imposibles de reproducir.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Quieres quitar duplicados manteniendo el orden de aparición. ¿Qué usas?<br><em><code>LinkedHashSet</code>.</em></li>
+        <li>Necesitas conocer el precio más bajo de un conjunto repetidamente. ¿<code>HashSet</code> o <code>TreeSet</code>?<br><em><code>TreeSet</code>: <code>first()</code> es <code>O(log n)</code>. Con <code>HashSet</code> habría que recorrer todo, <code>O(n)</code>.</em></li>
+        <li>¿Por qué <code>EnumSet</code> es tan eficiente?<br><em>Porque representa el conjunto como bits de un vector: un enum pequeño cabe en un solo <code>long</code>.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c6" class="inner">
+  <h2><span class="num">SECCIÓN 6</span>Map: diccionarios de clave a valor</h2>
+
+  <p>Un <code>Map</code> guarda <strong>pares clave y valor</strong>. Das una clave y te devuelve su valor. Las claves no se repiten: si metes la misma clave otra vez, se sobrescribe el valor.</p>
+  <p><strong>Import:</strong> <code>java.util.Map</code> (interfaz) y una implementación:</p>
+
+  <table>
+    <thead><tr><th>Implementación</th><th>Por dentro</th><th>get / put</th><th>Orden de iteración</th><th>null clave/valor</th><th>Hilos</th></tr></thead>
+    <tbody>
+      <tr><td><code>HashMap</code></td><td>Tabla hash + árboles en cubos llenos</td><td><code>O(1)</code> promedio</td><td>Sin orden</td><td>Sí / Sí</td><td>No seguro</td></tr>
+      <tr><td><code>LinkedHashMap</code></td><td><code>HashMap</code> + lista de orden</td><td><code>O(1)</code> promedio</td><td>Inserción o acceso</td><td>Sí / Sí</td><td>No seguro</td></tr>
+      <tr><td><code>TreeMap</code></td><td>Árbol rojo-negro</td><td><code>O(log n)</code></td><td>Claves ordenadas</td><td>No / Sí</td><td>No seguro</td></tr>
+      <tr><td><code>EnumMap</code></td><td>Arreglo indexado por el enum</td><td><code>O(1)</code></td><td>Orden del enum</td><td>No / Sí</td><td>No seguro</td></tr>
+      <tr><td><code>ConcurrentHashMap</code></td><td>Tabla hash con control de concurrencia</td><td><code>O(1)</code> promedio</td><td>Sin orden</td><td>No / No</td><td>Sí, seguro</td></tr>
+      <tr><td><code>Hashtable</code></td><td>Tabla hash, todo <code>synchronized</code></td><td><code>O(1)</code> promedio</td><td>Sin orden</td><td>No / No</td><td>Sí, anticuado</td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="g">import</span> java.util.<span class="b">Map</span>;
+<span class="g">import</span> java.util.<span class="b">HashMap</span>;
+<span class="g">import</span> java.util.<span class="b">LinkedHashMap</span>;
+<span class="g">import</span> java.util.<span class="b">TreeMap</span>;
+<span class="g">import</span> java.util.<span class="b">EnumMap</span>;
+<span class="g">import</span> java.util.concurrent.<span class="b">ConcurrentHashMap</span>;</pre>
+
+  <div class="box key"><span class="lbl">Cuándo usar cada uno</span>
+    <ul>
+      <li><code>HashMap</code> → por defecto. "Tengo una clave y quiero su valor". No importa el orden.</li>
+      <li><code>LinkedHashMap</code> → quieres el orden de inserción. Con <code>accessOrder=true</code> y <code>removeEldestEntry</code> se convierte en una <strong>caché LRU</strong> en tres líneas.</li>
+      <li><code>TreeMap</code> → necesitas las claves ordenadas o consultas de vecindad: <code>firstKey</code>, <code>floorKey</code> ("la clave menor o igual a esta"), <code>ceilingKey</code>, <code>headMap</code>, <code>tailMap</code>.</li>
+      <li><code>EnumMap</code> → claves de tipo <code>enum</code>. Más rápida y compacta que <code>HashMap</code> para ese caso.</li>
+      <li><code>ConcurrentHashMap</code> → varios hilos leen y escriben a la vez. Es el reemplazo correcto de <code>Hashtable</code>.</li>
+    </ul>
+  </div>
+
+  <h3>La operación que casi nadie aprovecha: <code>computeIfAbsent</code></h3>
+<pre><span class="c">// Forma torpe: buscar, comprobar, crear, volver a meter</span>
+<span class="b">List</span>&lt;<span class="b">String</span>&gt; l = mapa.<span class="y">get</span>(clave);
+<span class="g">if</span> (l == <span class="g">null</span>) { l = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;(); mapa.<span class="y">put</span>(clave, l); }
+l.<span class="y">add</span>(valor);
+
+<span class="c">// Forma idiomática: una sola línea, y atómica en un mapa concurrente</span>
+mapa.<span class="y">computeIfAbsent</span>(clave, k -&gt; <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;()).<span class="y">add</span>(valor);</pre>
+
+  <h3>Recorrer un mapa</h3>
+<pre><span class="g">for</span> (<span class="b">Map.Entry</span>&lt;<span class="b">String</span>, <span class="b">Integer</span>&gt; e : mapa.<span class="y">entrySet</span>()) {
+    <span class="b">String</span> k = e.<span class="y">getKey</span>();
+    <span class="b">Integer</span> v = e.<span class="y">getValue</span>();
+}
+mapa.<span class="y">forEach</span>((k, v) -&gt; System.out.<span class="y">println</span>(k + <span class="r">" = "</span> + v));</pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Iterar con <code>keySet()</code> y llamar <code>get(k)</code> dentro del bucle hace <strong>dos búsquedas por entrada</strong>. Usa <code>entrySet()</code>: obtienes clave y valor en una sola pasada.</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p><code>get</code> devuelve <code>null</code> tanto si la clave no existe como si su valor es <code>null</code>. Si necesitas distinguirlo, usa <code>containsKey</code> o <code>getOrDefault</code>. Y cuidado: <code>map.get(k).toString()</code> explota con <code>NullPointerException</code> cuando la clave no está.</p>
+  </div>
+
+  <details class="saber"><summary>Saber más: una caché LRU en tres líneas con LinkedHashMap</summary>
+    <div class="body">
+<pre><span class="b">Map</span>&lt;<span class="b">String</span>, <span class="b">String</span>&gt; cache = <span class="g">new</span> <span class="b">LinkedHashMap</span>&lt;&gt;(16, 0.75f, <span class="g">true</span>) {
+    <span class="p">@Override</span>
+    <span class="g">protected boolean</span> <span class="y">removeEldestEntry</span>(<span class="b">Map.Entry</span>&lt;<span class="b">String</span>, <span class="b">String</span>&gt; viejo) {
+        <span class="g">return</span> <span class="y">size</span>() &gt; 100;   <span class="c">// máximo 100 entradas</span>
+    }
+};</pre>
+      <p>El tercer argumento <code>true</code> activa el <em>orden de acceso</em>: cada <code>get</code> mueve la entrada al final. Cuando el mapa supera 100 entradas, expulsa la menos usada recientemente, que es la primera. Es el patrón clásico de caché, sin librerías.</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Necesitas "todas las claves entre A y M". ¿<code>HashMap</code> o <code>TreeMap</code>?<br><em><code>TreeMap</code> con <code>subMap("A", "M")</code>; el <code>HashMap</code> no tiene orden.</em></li>
+        <li>¿Cuál es el reemplazo moderno de <code>Hashtable</code>?<br><em><code>ConcurrentHashMap</code>.</em></li>
+        <li>¿Por qué <code>entrySet()</code> y no <code>keySet()</code> más <code>get()</code>?<br><em>Porque evita una segunda búsqueda por cada entrada.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c7" class="inner">
+  <h2><span class="num">SECCIÓN 7</span>Queue y Deque: colas y pilas</h2>
+
+  <p>Una <code>Queue</code> modela una <strong>fila</strong>: lo que entra primero sale primero (FIFO). Un <code>Deque</code> (double-ended queue) permite meter y sacar por <strong>los dos extremos</strong>, así que sirve a la vez como cola y como <strong>pila</strong> (LIFO).</p>
+
+  <table>
+    <thead><tr><th>Implementación</th><th>Por dentro</th><th>offer / poll</th><th>peek</th><th>Uso típico</th></tr></thead>
+    <tbody>
+      <tr><td><code>ArrayDeque</code></td><td>Arreglo circular</td><td><code>O(1)</code></td><td><code>O(1)</code></td><td>Cola y pila en un solo hilo. La mejor opción general.</td></tr>
+      <tr><td><code>LinkedList</code></td><td>Lista doblemente enlazada</td><td><code>O(1)</code></td><td><code>O(1)</code></td><td>Cuando ya la usas como lista; admite <code>null</code>.</td></tr>
+      <tr><td><code>PriorityQueue</code></td><td>Montículo binario (heap)</td><td><code>O(log n)</code></td><td><code>O(1)</code></td><td>Atender siempre el de mayor prioridad, no el primero que llegó.</td></tr>
+      <tr><td><code>ArrayBlockingQueue</code></td><td>Arreglo circular con cerrojos</td><td><code>O(1)</code></td><td><code>O(1)</code></td><td>Productor/consumidor entre hilos, con capacidad máxima.</td></tr>
+      <tr><td><code>LinkedBlockingQueue</code></td><td>Nodos enlazados con cerrojos</td><td><code>O(1)</code></td><td><code>O(1)</code></td><td>Igual, sin límite fijo (cuidado con la memoria).</td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="g">import</span> java.util.<span class="b">Queue</span>;
+<span class="g">import</span> java.util.<span class="b">Deque</span>;
+<span class="g">import</span> java.util.<span class="b">ArrayDeque</span>;
+<span class="g">import</span> java.util.<span class="b">PriorityQueue</span>;
+<span class="g">import</span> java.util.concurrent.<span class="b">ArrayBlockingQueue</span>;
+<span class="g">import</span> java.util.concurrent.<span class="b">LinkedBlockingQueue</span>;</pre>
+
+  <div class="box key"><span class="lbl">Cuándo usar cada uno</span>
+    <ul>
+      <li><code>ArrayDeque</code> → por defecto para colas y pilas de un hilo. Sustituye a <code>Stack</code> y hace el trabajo de <code>LinkedList</code> con menos memoria.</li>
+      <li><code>PriorityQueue</code> → cuando <strong>no vale</strong> el orden de llegada sino la prioridad: tareas urgentes primero, ruta más corta en un grafo, los <em>k</em> mejores resultados.</li>
+      <li><code>BlockingQueue</code> → comunicación productor/consumidor entre hilos, con <code>put</code> y <code>take</code> que bloquean en lugar de fallar.</li>
+    </ul>
+  </div>
+
+  <h3>Cola (FIFO) y pila (LIFO) con la misma clase</h3>
+<pre><span class="b">Deque</span>&lt;<span class="b">String</span>&gt; fila = <span class="g">new</span> <span class="b">ArrayDeque</span>&lt;&gt;();
+fila.<span class="y">offer</span>(<span class="r">"A"</span>); fila.<span class="y">offer</span>(<span class="r">"B"</span>);
+fila.<span class="y">poll</span>();   <span class="c">// "A"  FIFO</span>
+
+<span class="b">Deque</span>&lt;<span class="b">String</span>&gt; pila = <span class="g">new</span> <span class="b">ArrayDeque</span>&lt;&gt;();
+pila.<span class="y">push</span>(<span class="r">"A"</span>); pila.<span class="y">push</span>(<span class="r">"B"</span>);
+pila.<span class="y">pop</span>();    <span class="c">// "B"  LIFO</span></pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>ArrayDeque</code> <strong>no admite <code>null</code></strong>. Y hay un detalle fino: cuando la cola está <em>vacía</em>, los métodos vienen en dos sabores. <code>poll()</code> devuelve <code>null</code>; <code>remove()</code> lanza excepción. <code>peek()</code> devuelve <code>null</code>; <code>element()</code> lanza excepción. Si la cola puede estar vacía, prefiere <code>poll</code> y <code>peek</code>.</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>No uses <code>java.util.Stack</code> en código nuevo. Hereda de <code>Vector</code>, está sincronizada (lenta) y permite acceso por índice, lo que rompe la abstracción de pila. Usa <code>ArrayDeque</code> con <code>push</code> y <code>pop</code>.</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real: "los k mejores" en cuatro líneas</span>
+<pre><span class="c">// Los 10 números más grandes de un flujo enorme</span>
+<span class="b">PriorityQueue</span>&lt;<span class="b">Integer</span>&gt; top = <span class="g">new</span> <span class="b">PriorityQueue</span>&lt;&gt;();
+<span class="g">for</span> (<span class="b">int</span> x : flujo) {
+    top.<span class="y">offer</span>(x);                     <span class="c">// O(log k)</span>
+    <span class="g">if</span> (top.<span class="y">size</span>() &gt; 10) top.<span class="y">poll</span>();   <span class="c">// tira el menor</span>
+}</pre>
+    <p>Memoria <code>O(k)</code> y tiempo <code>O(n log k)</code>, en vez de guardar todo y ordenar: <code>O(n log n)</code> y toda la memoria.</p>
+  </div>
+
+  <details class="saber"><summary>Saber más: por qué PriorityQueue no está ordenada por dentro</summary>
+    <div class="body">
+      <p>Un <em>montículo binario</em> no mantiene la lista ordenada: solo garantiza que <strong>el menor (o mayor) está en la cima</strong>. Por eso <code>peek</code> es <code>O(1)</code> y <code>poll</code> es <code>O(log n)</code>. Recorrer un <code>PriorityQueue</code> con un <code>for</code> devuelve un orden <em>cualquiera</em>, no ordenado. Si necesitas orden completo, ordena la lista o usa un <code>TreeSet</code>. Si solo necesitas "el siguiente más prioritario", el montículo es más barato.</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Para una pila de un solo hilo, qué usas?<br><em><code>ArrayDeque</code> con <code>push</code> y <code>pop</code>.</em></li>
+        <li>¿<code>PriorityQueue</code> respeta el orden de llegada?<br><em>No: saca siempre el de mayor prioridad según el comparador.</em></li>
+        <li>¿Qué prefieres si la cola puede estar vacía: <code>poll()</code> o <code>remove()</code>?<br><em><code>poll()</code>, que devuelve <code>null</code> en lugar de lanzar excepción.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c8" class="inner">
+  <h2><span class="num">SECCIÓN 8</span>Por dentro: el array dinámico (ArrayList)</h2>
+
+  <p>Un arreglo en Java tiene <strong>tamaño fijo</strong>: <code>new int[10]</code> reserva espacio para 10 y nunca para 11. Entonces, ¿cómo hace <code>ArrayList</code> para crecer sin límite? Con una idea sencilla y muy eficaz: <strong>guarda un arreglo más grande de lo necesario</strong> y, cuando se llena, crea uno nuevo y copia.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Tienes una estantería de 10 huecos y la llenas. Cuando llega el libro 11 no agrandas la estantería: compras una de 15, pasas los 10 libros y tiras la vieja. Cada vez que se llena, compras una más grande. Si compraras "uno más" cada vez, pasarías libros todo el tiempo; comprando un 50 % más, lo haces cada vez menos.</p>
+  </div>
+
+  <h3>Las tres variables que importan</h3>
+<pre><span class="c">// Dentro de java.util.ArrayList (JDK)</span>
+<span class="g">private static final int</span> DEFAULT_CAPACITY = 10;   <span class="c">// capacidad inicial por defecto</span>
+<span class="g">transient</span> <span class="b">Object</span>[] elementData;                    <span class="c">// el arreglo donde viven los datos</span>
+<span class="g">private int</span> size;                                  <span class="c">// cuántos elementos hay DE VERDAD</span></pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p><strong><code>size</code> no es lo mismo que <code>elementData.length</code>.</strong> <code>size</code> es cuántos elementos has metido; la longitud del arreglo es cuántos <em>caben</em>. Esa diferencia es la "capacidad", y es la razón de que casi todo sea tan rápido.</p>
+  </div>
+
+  <h3>Cómo crece</h3>
+  <p>Al añadir, si <code>size == elementData.length</code>, se llama a <code>grow()</code>, que calcula la nueva capacidad así:</p>
+<pre><span class="c">// crecimiento al 50 %: nueva = vieja + vieja/2</span>
+<span class="b">int</span> nueva = vieja + (vieja &gt;&gt; 1);   <span class="c">// "&gt;&gt; 1" es dividir entre 2</span>
+elementData = Arrays.<span class="y">copyOf</span>(elementData, nueva);</pre>
+
+  <table>
+    <thead><tr><th>Añadido n.º</th><th>Capacidad del arreglo</th><th>¿Hubo copia?</th></tr></thead>
+    <tbody>
+      <tr><td>1 a 10</td><td>10</td><td>no (ya cabía)</td></tr>
+      <tr><td>el 11.º</td><td>15</td><td>sí: copia 10</td></tr>
+      <tr><td>el 16.º</td><td>22</td><td>sí: copia 15</td></tr>
+      <tr><td>el 23.º</td><td>33</td><td>sí: copia 22</td></tr>
+      <tr><td>el 34.º</td><td>49</td><td>sí: copia 33</td></tr>
+    </tbody>
+  </table>
+  <p>Cada copia cuesta <code>O(n)</code>, pero ocurre con frecuencia cada vez menor. El costo total de insertar <code>n</code> elementos es <code>O(n)</code>, es decir, <code>O(1)</code> por elemento: eso es el <strong>amortizado</strong>.</p>
+
+  <div class="box real"><span class="lbl">Ejemplo real: por qué la capacidad inicial importa</span>
+    <p>Si sabes de antemano cuántos elementos vas a meter, evitas todas las copias:</p>
+<pre><span class="c">// MAL: puede copiar el arreglo ~20 veces para 1 millón de elementos</span>
+<span class="b">List</span>&lt;<span class="b">Integer</span>&gt; a = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();
+<span class="g">for</span> (<span class="b">int</span> i = 0; i &lt; 1_000_000; i++) a.<span class="y">add</span>(i);
+
+<span class="c">// BIEN: reserva una vez, cero copias</span>
+<span class="b">List</span>&lt;<span class="b">Integer</span>&gt; b = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;(1_000_000);
+<span class="g">for</span> (<span class="b">int</span> i = 0; i &lt; 1_000_000; i++) b.<span class="y">add</span>(i);</pre>
+  </div>
+
+  <h3>Por qué el acceso por índice es <code>O(1)</code></h3>
+  <p>Porque los elementos están <strong>contiguos</strong> en memoria. La dirección del elemento <code>i</code> se calcula con una multiplicación: <code>base + i x tamaño</code>. No hay que recorrer nada. Y al estar todos juntos, la CPU los trae en bloque a su caché, así que recorrer un <code>ArrayList</code> es rapidísimo incluso frente a estructuras con mejor complejidad teórica en otras operaciones.</p>
+
+  <h3>Por qué insertar en medio es <code>O(n)</code></h3>
+<pre>insertar "X" en la posición 2:
+
+antes:  [A][B][C][D][E][ ][ ][ ]
+paso 1: mover C, D, E una posición a la derecha    &lt;-- esto es O(n)
+después:[A][B][X][C][D][E][ ][ ]</pre>
+  <p>Hay que <strong>desplazar</strong> todos los elementos a la derecha del hueco. Borrar en medio desplaza a la izquierda. Cuanto más al inicio, más caro.</p>
+
+  <details class="saber"><summary>Saber más: por qué ArrayList vacío no reserva 10 huecos de inmediato</summary>
+    <div class="body">
+      <p>En las JDK modernas, <code>new ArrayList&lt;&gt;()</code> no crea un arreglo de 10: guarda un arreglo <strong>vacío compartido</strong> y solo lo reemplaza en el primer <code>add</code> (creando uno de capacidad 10). Es una optimización de memoria: miles de listas vacías no gastan 10 huecos cada una. Es un ejemplo precioso de que, en ingeniería, "reservar por si acaso" casi siempre es peor que "crear cuando hace falta".</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué diferencia hay entre <code>size()</code> y la capacidad?<br><em><code>size()</code> es cuántos elementos hay; la capacidad es cuántos caben.</em></li>
+        <li>¿Por qué añadir al final es <code>O(1)</code> amortizado?<br><em>Porque casi nunca copia, y las copias ocasionales se reparten entre muchísimas inserciones baratas.</em></li>
+        <li>¿Por qué insertar al inicio es <code>O(n)</code>?<br><em>Porque obliga a desplazar todos los elementos existentes una posición.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c9" class="inner">
+  <h2><span class="num">SECCIÓN 9</span>Por dentro: la lista enlazada (LinkedList)</h2>
+
+  <p>Una lista enlazada no guarda los datos juntos. Guarda <strong>nodos</strong> dispersos por la memoria, y cada nodo lleva, además del dato, <strong>la dirección del anterior y del siguiente</strong>. Es una cadena: para llegar al final, sigues los eslabones.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Un arreglo es un edificio con habitaciones numeradas: para ir a la 500 caminas hasta la puerta 500 en línea recta. Una lista enlazada es una búsqueda del tesoro: cada pista te da la dirección de la siguiente. Insertar una pista nueva en medio es facilísimo (cambias dos notas), pero para llegar al punto medio tienes que seguir pista tras pista.</p>
+  </div>
+
+<pre><span class="c">// Dentro de java.util.LinkedList (JDK)</span>
+<span class="g">private static class</span> <span class="b">Node</span>&lt;E&gt; {
+    E item;          <span class="c">// el dato</span>
+    <span class="b">Node</span>&lt;E&gt; next;     <span class="c">// puntero al siguiente</span>
+    <span class="b">Node</span>&lt;E&gt; prev;     <span class="c">// puntero al anterior</span>
+}</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real: el costo oculto en memoria</span>
+    <p>Cada nodo es un objeto aparte. En una máquina de 64 bits con referencias comprimidas, la cabecera del objeto y los tres campos ocupan del orden de <strong>24 bytes</strong>… y encima va el valor guardado. Un <code>ArrayList</code> con 1 000 enteros usa unos 4 KB contiguos; un <code>LinkedList</code> con 1 000 enteros usa unos 24 KB <em>más</em> los objetos <code>Integer</code>, repartidos por toda la memoria. Menos caché, más basura para el recolector.</p>
+  </div>
+
+  <h3>Lo que hace bien y lo que hace mal</h3>
+  <table>
+    <thead><tr><th>Operación</th><th>Costo</th><th>Por qué</th></tr></thead>
+    <tbody>
+      <tr><td><code>addFirst</code> / <code>addLast</code></td><td><code>O(1)</code></td><td>Solo se reajustan punteros en los extremos.</td></tr>
+      <tr><td><code>removeFirst</code> / <code>removeLast</code></td><td><code>O(1)</code></td><td>Igual: se sueltan dos eslabones de los extremos.</td></tr>
+      <tr><td><code>get(i)</code></td><td><code>O(n)</code></td><td>Hay que caminar desde un extremo hasta <code>i</code> (la JDK camina desde el extremo más cercano, pero sigue siendo <code>O(n)</code>).</td></tr>
+      <tr><td><code>add(i, e)</code></td><td><code>O(n)</code></td><td>Encontrar la posición cuesta <code>O(n)</code>; el enlace en sí, <code>O(1)</code>.</td></tr>
+      <tr><td><code>contains</code></td><td><code>O(n)</code></td><td>Recorre la cadena comparando uno por uno.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>La lista enlazada brilla cuando el trabajo es <strong>en los extremos</strong> y el acceso es <strong>siempre secuencial</strong>. En cuanto aparece un índice, pierde. Por eso, en la práctica, <code>ArrayDeque</code> ocupa su lugar para colas y pilas: es una cola con la memoria de un arreglo.</p>
+  </div>
+
+  <details class="saber"><summary>Saber más: por qué existe LinkedList si casi nunca conviene</summary>
+    <div class="body">
+      <p>Por razones históricas y de API: implementa <code>List</code> y <code>Deque</code> a la vez, admite <code>null</code> (a diferencia de <code>ArrayDeque</code>) y ofrece un <code>ListIterator</code> que permite insertar y borrar con costo <code>O(1)</code> <em>mientras avanzas</em>. Ese es su nicho real: recorrer una vez e ir insertando o borrando sobre la marcha sin desplazar nada.</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Cuánto cuesta <code>addFirst</code>? ¿Y <code>get(500000)</code>?<br><em><code>O(1)</code> y <code>O(n)</code> respectivamente.</em></li>
+        <li>¿Por qué gasta más memoria que un <code>ArrayList</code>?<br><em>Porque cada elemento vive en su propio nodo con dos punteros adicionales, sin contigüidad.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c10" class="inner">
+  <h2><span class="num">SECCIÓN 10</span>Por dentro: la tabla hash (HashMap y HashSet)</h2>
+
+  <p>Aquí está el truco que hace que buscar sea <code>O(1)</code>. La tabla hash convierte la clave en un <strong>número</strong> y usa ese número como <strong>índice de un arreglo</strong>. Si el número está bien repartido, la clave te dice directamente dónde buscar: cero recorridos.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Un archivador con 16 cajones numerados del 0 al 15. Para archivar una carpeta "Pérez" no la buscas por orden: aplicas una regla (la inicial) y va derechito al cajón que toca. Casi siempre el cajón tiene poquísimas carpetas. Pero si la regla fuera "todo el que empiece por vocal al cajón 0", ese único cajón tendría medio archivador y volverías a buscar a mano.</p>
+  </div>
+
+  <h3>El recorrido de una clave</h3>
+<pre>1. hashCode()       -&gt; un número de 32 bits, ej: "ana" -&gt; 96 849
+2. spread (mezcla)  -&gt; h ^ (h &gt;&gt;&gt; 16)     <span class="c">// revuelve los bits altos con los bajos</span>
+3. índice           -&gt; hash &amp; (n - 1)     <span class="c">// n = capacidad, potencia de 2</span>
+4. cubo             -&gt; si está vacío: se guarda; si no: se compara con equals()</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>Como la capacidad siempre es una <strong>potencia de 2</strong> (16, 32, 64…), la operación <code>hash &amp; (n - 1)</code> es equivalente a <code>hash % n</code> pero muchísimo más rápida: una AND de bits en vez de una división. Detalle pequeño; milisegundos ganados en programas reales.</p>
+  </div>
+
+  <h3>Las constantes que gobiernan HashMap</h3>
+  <table>
+    <thead><tr><th>Constante</th><th>Valor</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td>Capacidad inicial</td><td>16</td><td>Número de cubos al crear el mapa (siempre potencia de 2).</td></tr>
+      <tr><td>Factor de carga</td><td>0,75</td><td>Si <code>elementos &gt; 0,75 x cubos</code>, la tabla se amplía al doble.</td></tr>
+      <tr><td><code>TREEIFY_THRESHOLD</code></td><td>8</td><td>Un cubo con 8 elementos se convierte en árbol rojo-negro.</td></tr>
+      <tr><td><code>UNTREEIFY_THRESHOLD</code></td><td>6</td><td>Al bajar a 6 elementos, el cubo vuelve a ser una lista.</td></tr>
+      <tr><td><code>MIN_TREEIFY_CAPACITY</code></td><td>64</td><td>Antes de árbolizar, si la tabla es pequeña, primero se amplía.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Colisiones: dos claves, un mismo cubo</h3>
+  <p>Si dos claves caen en el mismo índice no es un error: se guardan <strong>en cadena</strong> dentro del cubo. Al buscar, se recorre la cadena comparando con <code>equals()</code>.</p>
+<pre>cubos (capacidad 4):
+
+0:  [ ]                        vacío
+1:  [ana=25] -&gt; [luis=31]      colisión: dos en el mismo cubo
+2:  [eva=19]
+3:  [ ]</pre>
+  <p>Si un cubo se llena demasiado, buscar dentro de él sería <code>O(k)</code>. Por eso, desde Java 8, un cubo con 8 elementos se transforma en un <strong>árbol rojo-negro</strong> y buscar dentro pasa a <code>O(log k)</code>. Es una defensa contra hashes malos o maliciosos.</p>
+
+  <h3>Ampliación (resize)</h3>
+  <p>Cuando <code>elementos &gt; 0,75 x cubos</code>, la tabla duplica su capacidad y <strong>reparte de nuevo</strong> todas las entradas entre los cubos nuevos. Eso cuesta <code>O(n)</code>… pero ocurre logarítmicamente pocas veces, así que el costo amortizado por inserción sigue siendo <code>O(1)</code>.</p>
+
+  <div class="box real"><span class="lbl">Ejemplo real: evitar el resize con la capacidad inicial</span>
+    <p>Si vas a meter ~1 000 entradas, calcula la capacidad de una vez. <code>HashMap</code> acepta la capacidad deseada y la redondea hacia arriba a la siguiente potencia de 2 en el constructor.</p>
+<pre><span class="c">// Para 1000 entradas: 1000 / 0,75 = 1334, la JDK redondea a 2048</span>
+<span class="b">Map</span>&lt;<span class="b">String</span>, <span class="b">Integer</span>&gt; m = <span class="g">new</span> <span class="b">HashMap</span>&lt;&gt;((<span class="b">int</span>) (1000 / 0.75f) + 1);</pre>
+  </div>
+
+  <h3><code>HashSet</code> es un <code>HashMap</code> por dentro</h3>
+  <p>No hay magia: un <code>HashSet</code> guarda internamente un <code>HashMap</code> donde cada elemento del conjunto es una <em>clave</em> y el valor es un objeto constante compartido. Por eso sus costos son idénticos. Y por eso el contrato de <code>equals</code> y <code>hashCode</code> (sección <a href="#c12">12</a>) es el mismo para ambos.</p>
+
+  <details class="saber"><summary>Saber más: quién decide el índice y por qué importa el hashCode</summary>
+    <div class="body">
+      <p><strong>Tú</strong> aportas el <code>hashCode()</code>, y de su calidad depende todo. Un <code>hashCode</code> que devuelve siempre el mismo número (o que solo usa el primer carácter) mete todas las claves en pocos cubos: la tabla degenera en listas y vuelves a <code>O(n)</code> sin darte cuenta. Regla de oro: <code>hashCode</code> debe usar <strong>los mismos campos</strong> que <code>equals</code> y repartirse uniformemente. Para clases propias, <code>Objects.hash(campo1, campo2)</code> es un buen punto de partida.</p>
+      <p>En <code>String</code>, el <code>hashCode</code> se calcula como <code>h = 31 * h + caracter</code> para cada carácter: determinista y rápido. Java 7+ aplica además una randomización interna a las <code>String</code> usadas como claves, precisamente para que nadie pueda construir muchas cadenas que colisionen a propósito y degrade el mapa.</p>
+    </div>
+  </details>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué pasa cuando dos claves dan el mismo índice?<br><em>Se guardan en el mismo cubo (colisión) formando una cadena; se distinguen con <code>equals()</code>.</em></li>
+        <li>¿Qué factor de carga usa <code>HashMap</code> por defecto?<br><em>0,75.</em></li>
+        <li>¿Qué gana Java 8 al árbolizar un cubo lleno?<br><em>Bajar la búsqueda dentro del cubo de <code>O(k)</code> a <code>O(log k)</code>, protegiéndose de hashes malos.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c11" class="inner">
+  <h2><span class="num">SECCIÓN 11</span>Por dentro: el árbol rojo-negro (TreeMap y TreeSet)</h2>
+
+  <p><code>TreeMap</code> y <code>TreeSet</code> mantienen todo <strong>ordenado en todo momento</strong>. No ordenan al final: conservan el orden mientras insertas y borras, y aun así cada operación cuesta <code>O(log n)</code>. La estructura que lo consigue es un <strong>árbol binario de búsqueda autobalanceado</strong>: el árbol rojo-negro.</p>
+
+  <h3>Primero, un árbol binario de búsqueda</h3>
+  <p>Cada nodo tiene hasta dos hijos, con una regla: <strong>todo lo menor va a la izquierda, todo lo mayor a la derecha</strong>. Buscar es bajar comparando: en cada paso descartas medio árbol.</p>
+<pre>              50
+            /    \
+          30      70
+         /  \    /  \
+        20   40  60   80
+
+Buscar 40:  40 &lt; 50 -&gt; izquierda
+            40 &gt; 30 -&gt; derecha -&gt; 40  OK</pre>
+  <p>Eso ya da <code>O(log n)</code> <em>si el árbol está equilibrado</em>. Y ahí está el problema: si insertas datos ya ordenados (10, 20, 30, 40, 50…), todos caen a la derecha y el árbol se convierte en una línea:</p>
+<pre>10
+  \
+   20
+     \
+      30
+        \
+         40       <span class="c">// parece una lista enlazada: búsqueda O(n)</span></pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Un árbol binario de búsqueda sin balanceo es tan bueno o tan malo como el orden en que lleguen los datos. Un árbol <strong>rojo-negro</strong> garantiza el equilibrio <em>pase lo que pase</em>: su altura nunca supera el doble del mínimo posible, así que <code>O(log n)</code> siempre, no "a veces".</p>
+  </div>
+
+  <h3>Cómo se autobalancea</h3>
+  <p>El árbol rojo-negro no mide alturas en cada operación (sería caro). En su lugar, pinta cada nodo de <strong>rojo</strong> o <strong>negro</strong> y respeta cinco reglas. Cuando una inserción las rompe, hace dos cosas mecánicas y locales:</p>
+  <ul>
+    <li><strong>Rotaciones</strong>: reordenaciones de pocos nodos que bajan la altura sin cambiar el orden.</li>
+    <li><strong>Recoloreo</strong>: cambiar rojos por negros para restablecer el equilibrio.</li>
+  </ul>
+  <p>El costo se paga localmente, sobre el camino que ya recorriste, y por eso insertar sigue siendo <code>O(log n)</code>. Las cinco reglas, en corto:</p>
+  <ol>
+    <li>Todo nodo es rojo o negro.</li>
+    <li>La raíz es negra.</li>
+    <li>Ningún nodo rojo tiene un hijo rojo (no hay dos rojos seguidos).</li>
+    <li>Todo camino de la raíz a un hueco vacío tiene el mismo número de nodos negros.</li>
+    <li>Las hojas vacías cuentan como negras.</li>
+  </ol>
+  <p>La regla 4 es la que garantiza el equilibrio: si todos los caminos tienen los mismos negros y no hay dos rojos seguidos, el camino más largo no puede ser más del doble del más corto. Esa es toda la idea del "rojo-negro".</p>
+
+  <div class="box real"><span class="lbl">Ejemplo real: para qué usarlo de verdad</span>
+<pre><span class="b">NavigableMap</span>&lt;<span class="b">Integer</span>, <span class="b">String</span>&gt; agenda = <span class="g">new</span> <span class="b">TreeMap</span>&lt;&gt;();
+agenda.<span class="y">put</span>(10, <span class="r">"Ana"</span>); agenda.<span class="y">put</span>(25, <span class="r">"Luis"</span>); agenda.<span class="y">put</span>(40, <span class="r">"Eva"</span>);
+
+agenda.<span class="y">firstKey</span>();        <span class="c">// 10            el menor</span>
+agenda.<span class="y">floorKey</span>(30);      <span class="c">// 25            la clave menor o igual a 30</span>
+agenda.<span class="y">ceilingKey</span>(30);    <span class="c">// 40            la clave mayor o igual a 30</span>
+agenda.<span class="y">subMap</span>(10, 30);     <span class="c">// {10=Ana, 25=Luis}   un rango</span>
+agenda.<span class="y">descendingMap</span>();   <span class="c">// al revés, sin esfuerzo</span></pre>
+    <p>Estas consultas de "vecino" son imposibles de hacer eficientemente en un <code>HashMap</code>. Ahí está el valor real de <code>TreeMap</code>.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>TreeMap</code> y <code>TreeSet</code> comparan con <code>compareTo</code> (orden natural) o con el <code>Comparator</code> que les pases. Si tus claves no implementan <code>Comparable</code> y no das comparador, lanzarán <code>ClassCastException</code>. Y recuerda: usan <strong>comparación</strong>, no <code>equals</code> ni <code>hashCode</code>. Dos claves que el comparador considera iguales <em>son</em> la misma clave para el árbol, aunque <code>equals</code> diga otra cosa.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué un árbol binario de búsqueda simple puede degenerar?<br><em>Si los datos llegan ordenados, todos los nodos caen a un lado y el árbol se vuelve una línea, con búsqueda <code>O(n)</code>.</em></li>
+        <li>¿Qué dos mecanismos usa el rojo-negro para reequilibrarse?<br><em>Rotaciones y recoloreo.</em></li>
+        <li>Cita dos consultas que solo un <code>TreeMap</code> hace fácilmente.<br><em><code>floorKey</code> y <code>ceilingKey</code>, <code>firstKey</code> y <code>lastKey</code>, <code>subMap</code>, <code>descendingMap</code>.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c12" class="inner">
+  <h2><span class="num">SECCIÓN 12</span>equals() y hashCode(): el contrato que sostiene todo</h2>
+
+  <p>Toda la eficiencia de <code>HashSet</code>, <code>HashMap</code> y <code>LinkedHashMap</code> depende de que tus objetos cumplan un contrato. Si lo rompes, el mapa compila, corre… y no encuentra lo que guardaste.</p>
+
+  <div class="box key"><span class="lbl">El contrato, en dos reglas</span>
+    <ol>
+      <li>Si <code>a.equals(b)</code> es <code>true</code>, entonces <code>a.hashCode() == b.hashCode()</code> <strong>obligatoriamente</strong>.</li>
+      <li>Si <code>a.hashCode() == b.hashCode()</code>, <code>equals</code> puede ser <code>true</code> o <code>false</code> (una colisión es legal).</li>
+    </ol>
+    <p>Es decir: hashCode propone el cubo, equals confirma la identidad.</p>
+  </div>
+
+  <h3>Qué pasa si lo rompes</h3>
+<pre><span class="b">class</span> <span class="b">Persona</span> {
+    <span class="b">String</span> nombre;
+    <span class="c">// sin sobrescribir equals ni hashCode</span>
+}
+
+<span class="b">Map</span>&lt;<span class="b">Persona</span>, <span class="b">String</span>&gt; m = <span class="g">new</span> <span class="b">HashMap</span>&lt;&gt;();
+m.<span class="y">put</span>(<span class="g">new</span> <span class="b">Persona</span>(<span class="r">"ana"</span>), <span class="r">"A"</span>);
+
+<span class="b">String</span> v = m.<span class="y">get</span>(<span class="g">new</span> <span class="b">Persona</span>(<span class="r">"ana"</span>));
+<span class="c">// v == null, y el mapa "crece" con claves que nadie puede encontrar</span></pre>
+  <p>Porque sin sobrescribir, <code>equals</code> compara <em>identidad</em> (¿es el mismo objeto en memoria?) y <code>hashCode</code> se deriva de la dirección. Dos objetos "Ana" distintos son claves distintas. El mapa se llena de basura inalcanzable.</p>
+
+  <h3>La forma correcta</h3>
+<pre><span class="g">import</span> java.util.<span class="b">Objects</span>;
+
+<span class="b">class</span> <span class="b">Persona</span> {
+    <span class="g">private final</span> <span class="b">String</span> nombre;
+    <span class="g">private final int</span> edad;
+
+    <span class="p">@Override</span>
+    <span class="g">public boolean</span> <span class="y">equals</span>(<span class="b">Object</span> o) {
+        <span class="g">if</span> (<span class="g">this</span> == o) <span class="g">return true</span>;
+        <span class="g">if</span> (!(o <span class="g">instanceof</span> <span class="b">Persona</span> p)) <span class="g">return false</span>;   <span class="c">// Java 16+</span>
+        <span class="g">return</span> edad == p.edad &amp;&amp; <span class="b">Objects</span>.<span class="y">equals</span>(nombre, p.nombre);
+    }
+
+    <span class="p">@Override</span>
+    <span class="g">public int</span> <span class="y">hashCode</span>() {
+        <span class="g">return</span> <span class="b">Objects</span>.<span class="y">hash</span>(nombre, edad);   <span class="c">// mismos campos que equals</span>
+    }
+}</pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Usa <strong>los mismos campos</strong> en <code>equals</code> y en <code>hashCode</code>. Si <code>equals</code> usa nombre y edad, <code>hashCode</code> debe usar nombre y edad. Mezclarlos es la causa número uno de mapas "que pierden cosas".</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa: claves mutables</span>
+    <p>Si usas como clave un objeto cuyo <code>hashCode</code> cambia después, la entrada queda en un cubo que ya no le corresponde: <code>get</code> la buscará en otro sitio y no la encontrará. Por eso las claves deben ser <strong>inmutables</strong> (<code>String</code>, <code>Integer</code>, <code>enum</code>, o una clase con campos <code>final</code>). Nunca uses una <code>List</code> ni un objeto que vas a modificar como clave de un <code>HashMap</code>.</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>Con <code>record Persona(String nombre, int edad) {}</code> la JDK genera automáticamente <code>equals</code>, <code>hashCode</code> y <code>toString</code> coherentes entre sí. Es la forma recomendada de crear claves hoy: te ahorras las dos sobrescrituras y los errores que conllevan.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Puede <code>equals</code> devolver <code>true</code> con <code>hashCode</code> distintos?<br><em>No. Es exactamente lo que prohíbe el contrato.</em></li>
+        <li>¿Por qué una clave que muta es peligrosa?<br><em>Porque su cubo cambia, y las búsquedas miran en el cubo del hash actual, que ya no es donde quedó guardada.</em></li>
+        <li>¿Qué genera un <code>record</code> por ti?<br><em><code>equals</code>, <code>hashCode</code> y <code>toString</code> coherentes, entre otros.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c13" class="inner">
+  <h2><span class="num">13</span>Cómo elegir una colección (árbol de decisión)</h2>
+
+  <p>Ya conoces las piezas. Ahora la pregunta práctica: <em>tengo un problema delante, ¿qué colección uso?</em> La respuesta se obtiene haciendo tres preguntas en orden.</p>
+
+  <h3>Pregunta 1: ¿qué representa cada elemento?</h3>
+  <ul>
+    <li>Si cada elemento es <strong>independiente</strong> y solo importa <em>qué</em> hay dentro → piensas en <code>List</code> o <code>Set</code>.</li>
+    <li>Si cada elemento es un <strong>par clave → valor</strong> → piensas en <code>Map</code>.</li>
+    <li>Si el orden de salida importa más que el orden de guardado (colas, pilas, prioridades) → piensas en <code>Queue</code> / <code>Deque</code>.</li>
+  </ul>
+
+  <h3>Pregunta 2: ¿importa el orden?</h3>
+  <p>Aquí está la decisión que más se equivoca la gente. "Orden" significa tres cosas distintas:</p>
+  <ul>
+    <li><strong>Orden de inserción</strong>: si meto A, B, C, quiero verlos A, B, C. → <code>ArrayList</code>, <code>LinkedHashSet</code>, <code>LinkedHashMap</code>.</li>
+    <li><strong>Orden natural / comparación</strong>: quiero los elementos ordenados por su valor (alfabético, numérico, por <code>Comparable</code>). → <code>TreeSet</code>, <code>TreeMap</code>, <code>PriorityQueue</code>.</li>
+    <li><strong>Sin orden</strong> (me da igual): la opción más rápida. → <code>HashSet</code>, <code>HashMap</code>.</li>
+  </ul>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>HashMap</code> y <code>HashSet</code> <strong>no prometen ningún orden</strong>. Que hoy te salgan "en orden" en tu máquina es casualidad de los hashes, no una garantía. Si escribes código que <em>depende</em> de ese orden, se romperá en otro equipo o al añadir un elemento. Si necesitas un orden, pídelo explícitamente.</p>
+  </div>
+
+  <h3>Pregunta 3: ¿necesito unicidad o admito repetidos?</h3>
+  <ul>
+    <li>Repetidos permitidos → <code>List</code> o <code>Queue</code>.</li>
+    <li>Sin repetidos → <code>Set</code> (o las claves de un <code>Map</code>, que por definición son únicas).</li>
+  </ul>
+
+  <h3>El árbol completo</h3>
+  <table>
+    <thead><tr><th>Necesito…</th><th>Usa</th><th>Complejidad del acceso</th></tr></thead>
+    <tbody>
+      <tr><td>Lista indexada, acceso por posición, recorrido rápido</td><td><code>ArrayList</code></td><td><code>get/put</code> O(1)</td></tr>
+      <tr><td>Sin duplicados, no me importa el orden</td><td><code>HashSet</code></td><td><code>contains/add</code> O(1) promedio</td></tr>
+      <tr><td>Sin duplicados, quiero orden de inserción</td><td><code>LinkedHashSet</code></td><td>O(1) promedio</td></tr>
+      <tr><td>Sin duplicados, quiero orden por valor</td><td><code>TreeSet</code></td><td>O(log n)</td></tr>
+      <tr><td>Diccionario clave→valor, lo más rápido</td><td><code>HashMap</code></td><td>O(1) promedio</td></tr>
+      <tr><td>Diccionario con orden de inserción</td><td><code>LinkedHashMap</code></td><td>O(1) promedio</td></tr>
+      <tr><td>Diccionario con claves ordenadas o rangos</td><td><code>TreeMap</code></td><td>O(log n)</td></tr>
+      <tr><td>Cola FIFO (el primero que llega, primero sale)</td><td><code>ArrayDeque</code></td><td>O(1)</td></tr>
+      <tr><td>Pila LIFO (el último que llega, primero sale)</td><td><code>ArrayDeque</code> / <code>Stack</code></td><td>O(1)</td></tr>
+      <tr><td>Siempre saco el de mayor prioridad (por valor)</td><td><code>PriorityQueue</code></td><td>O(log n) por operación</td></tr>
+      <tr><td>Muchas inserciones/borrados en medio y ya tengo el iterador</td><td><code>LinkedList</code></td><td>O(1) con iterador</td></tr>
+      <tr><td>Varios hilos a la vez</td><td><code>ConcurrentHashMap</code>, colas de <code>java.util.concurrent</code></td><td>Depende</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Regla mental en tres líneas</h3>
+<pre><span class="c">// ¿Es un par clave→valor?  -> Map   (HashMap / TreeMap / LinkedHashMap)</span>
+<span class="c">// ¿Prohíbe repetidos?      -> Set   (HashSet / TreeSet / LinkedHashSet)</span>
+<span class="c">// Lo demás (orden, posición, duplicados) -> List / Queue  (ArrayList / ArrayDeque)</span></pre>
+
+  <div class="box analogy"><span class="lbl">La analogía del almacén</span>
+    <p>Un <code>ArrayList</code> es un pasillo de estanterías <strong>numeradas</strong>: puedes ir directo a la número 7. Un <code>HashMap</code> es un guardarropa con un <strong>cartelito por abrigo</strong>: buscas por nombre. Un <code>TreeMap</code> es el mismo guardarropa pero con los cartelitos <strong>ordenados alfabéticamente</strong>: encuentras rápido y además puedes pedir "todos los de la letra M a la P". Un <code>HashSet</code> es una <strong>caja sin orden</strong>: solo me importa si ya está o no.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Quiero evitar correos repetidos en una lista de suscriptores y mostrarlos en el orden en que llegaron. ¿Qué colección?<br><em><code>LinkedHashSet</code>: sin duplicados y con orden de inserción.</em></li>
+        <li>Necesito, dado un código de vuelo, saber su estado. ¿Qué colección?<br><em><code>HashMap</code> (clave <code>String</code> → valor estado). Si necesito recorrerlos por código ordenado, <code>TreeMap</code>.</em></li>
+        <li>¿Por qué no debo confiar en el orden de un <code>HashSet</code>?<br><em>Porque no lo garantiza: depende de los hashes, que cambian con los datos y la máquina.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c14" class="inner">
+  <h2><span class="num">14</span>Errores clásicos y cómo evitarlos</h2>
+
+  <p>Estos son los fallos que más aparecen en código real. Casi todos tienen la misma forma: usar una colección cuyo costo real no coincide con lo que el autor imaginaba.</p>
+
+  <h3>1. Usar <code>List.contains()</code> dentro de un bucle</h3>
+  <p>Un <code>contains</code> en una <code>List</code> recorre todos los elementos: O(n). Si lo llamas dentro de otro bucle de n elementos, tienes O(n²). Con 100.000 elementos, eso es 10.000 millones de comparaciones.</p>
+<pre><span class="c">// MAL: O(n²)</span>
+<span class="g">for</span> (<span class="b">String</span> x : listaA) <span class="g">if</span> (listaB.<span class="y">contains</span>(x)) ...;
+
+<span class="c">// BIEN: O(n) -> pasamos B a un Set (que consulta en O(1))</span>
+<span class="b">Set</span>&lt;<span class="b">String</span>&gt; setB = <span class="g">new</span> <span class="b">HashSet</span>&lt;&gt;(listaB);
+<span class="g">for</span> (<span class="b">String</span> x : listaA) <span class="g">if</span> (setB.<span class="y">contains</span>(x)) ...;   <span class="c">// ahora O(n)</span></pre>
+
+  <h3>2. Eliminar de una lista mientras la recorro</h3>
+  <p>Casi siempre lanza <code>ConcurrentModificationException</code>. La solución no es copiar la lista: es usar el iterador, que sí sabe borrar con seguridad.</p>
+<pre><span class="c">// MAL: excepción</span>
+<span class="g">for</span> (<span class="b">String</span> s : lista) <span class="g">if</span> (s.<span class="y">isEmpty</span>()) lista.<span class="y">remove</span>(s);
+
+<span class="c">// BIEN</span>
+<span class="b">Iterator</span>&lt;<span class="b">String</span>&gt; it = lista.<span class="y">iterator</span>();
+<span class="g">while</span> (it.<span class="y">hasNext</span>())
+    <span class="g">if</span> (it.<span class="y">next</span>().<span class="y">isEmpty</span>()) it.<span class="y">remove</span>();
+
+<span class="c">// Alternativa moderna: eliminar por predicado, en una línea</span>
+lista.<span class="y">removeIf</span>(<span class="b">String</span>::isEmpty);</pre>
+
+  <h3>3. Concatenar <code>String</code> dentro de un bucle</h3>
+  <p>Cada <code>+</code> crea una cadena nueva (las cadenas son inmutables). Con n concatenaciones son O(n²) en memoria y tiempo.</p>
+<pre><span class="c">// MAL: O(n²)</span>
+<span class="b">String</span> s = <span class="r">""</span>;
+<span class="g">for</span> (<span class="b">String</span> w : palabras) s += w;
+
+<span class="c">// BIEN: O(n)</span>
+<span class="b">StringBuilder</span> sb = <span class="g">new</span> <span class="b">StringBuilder</span>();
+<span class="g">for</span> (<span class="b">String</span> w : palabras) sb.<span class="y">append</span>(w);
+<span class="b">String</span> s = sb.<span class="y">toString</span>();</pre>
+
+  <h3>4. Olvidar el <code>equals</code>/<code>hashCode</code></h3>
+  <p>Ya lo vimos en la (sección 12), pero es <em>el</em> error número uno. Sin ellos, un objeto usado como clave en un <code>HashMap</code> nunca vuelve a encontrarse; un <code>HashSet</code> acepta "duplicados" que tú consideras iguales.</p>
+
+  <h3>5. Elegir <code>LinkedList</code> "porque es más rápida para insertar"</h3>
+  <p>Es una intuición de libro de texto que en la práctica sale mal. <code>ArrayList</code> gana casi siempre por <em>localidad de caché</em>: sus elementos viven juntos en memoria, así que el procesador los lee de golpe. Los nodos de una <code>LinkedList</code> están dispersos y cada salto cuesta. A menos que tengas un caso muy específico (insertar y borrar masivamente en los extremos o con un iterador ya posicionado), usa <code>ArrayList</code>.</p>
+
+  <h3>6. Confiar en la capacidad por defecto cuando conoces el tamaño</h3>
+  <p>Un <code>ArrayList</code> arranca con capacidad 10 y va duplicando y copiando. Si sabes que vas a meter 1.000.000 de elementos, pídelo desde el principio y evitas decenas de copias.</p>
+<pre><span class="c">// MAL: crece y copia ~17 veces hasta llegar al millón</span>
+<span class="b">List</span>&lt;<span class="b">Integer</span>&gt; l = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();
+
+<span class="c">// BIEN: reserva desde el inicio</span>
+<span class="b">List</span>&lt;<span class="b">Integer</span>&gt; l = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;(<span class="r">1_000_000</span>);</pre>
+
+  <h3>7. Modificar una colección desde varios hilos sin protección</h3>
+  <p>Un <code>HashMap</code> tocado por dos hilos a la vez no "da un resultado raro": en versiones antiguas podía entrar en un bucle infinito y colgar la CPU. Las colecciones de <code>java.util</code> no son seguras para hilos. En la (sección 15) ves la solución.</p>
+
+  <div class="box danger"><span class="lbl">Resumen de la trampa</span>
+    <p>Casi todos estos errores son la <strong>misma historia</strong>: un método O(n) escondido dentro de un bucle. Antes de escribir un bucle, pregúntate qué complejidad tiene cada cosa que haces <em>dentro</em> de él. Ahí es donde explotan los programas lentos.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué lanza <code>ConcurrentModificationException</code> y por qué?<br><em>Modificar una colección mientras se recorre con <code>for-each</code>, porque el iterador detecta que el "contador de versiones" cambió.</em></li>
+        <li>¿Por qué <code>ArrayList</code> suele ganarle a <code>LinkedList</code> en la práctica?<br><em>Por localidad de caché: accede a memoria contigua y el procesador la trae en bloque.</em></li>
+        <li>Pasar B a un <code>HashSet</code> antes de comparar con A, ¿en qué cambia la complejidad?<br><em>De O(n²) a O(n): cada consulta pasa de recorrer la lista a calcular un hash.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c15" class="inner">
+  <h2><span class="num">15</span>Java moderno y concurrencia</h2>
+
+  <h3>Interfaces <code>var</code> y colecciones inmutables</h3>
+  <p>Desde Java 9, <code>List.of()</code>, <code>Set.of()</code> y <code>Map.of()</code> crean colecciones <strong>inmutables</strong> (no se pueden modificar) con una sola línea:</p>
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; dias = <span class="b">List</span>.<span class="y">of</span>(<span class="r">"lun"</span>, <span class="r">"mar"</span>, <span class="r">"mie"</span>);
+<span class="b">Map</span>&lt;<span class="b">String</span>, <span class="b">Integer</span>&gt; edad = <span class="b">Map</span>.<span class="y">of</span>(<span class="r">"ana"</span>, <span class="r">30</span>, <span class="r">"luis"</span>, <span class="r">25</span>);
+
+dias.<span class="y">add</span>(<span class="r">"jue"</span>);   <span class="c">// UnsupportedOperationException</span></pre>
+  <p>Son la opción correcta cuando la colección es un dato fijo: constantes, catálogos, resultados de configuración. Además son ligeras y, al no poder cambiar, puedes compartirlas entre hilos sin miedo.</p>
+
+  <h3>La interfaz <code>var</code> y el tipado al frente</h3>
+  <p>Al declarar, se prefiere la <strong>interfaz</strong>, no la implementación, porque deja libre el cambio de implementación:</p>
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; nombres = <span class="g">new</span> <span class="b">ArrayList</span>&lt;&gt;();   <span class="c">// declaro List, uso ArrayList</span></pre>
+  <p>Si mañana quieres <code>LinkedList</code>, cambias una sola palabra. Si declararas <code>ArrayList&lt;String&gt; nombres</code>, el resto del código quedaría atado a esa clase.</p>
+
+  <h3>Vista y envoltorios: <code>Collections</code></h3>
+  <p>La clase <code>Collections</code> (¡ojo, con <em>s</em>; la interfaz es <code>Collection</code> sin <em>s</em>!) tiene métodos de utilidad estáticos:</p>
+<pre><span class="b">Collections</span>.<span class="y">sort</span>(lista);                       <span class="c">// ordena en su lugar</span>
+<span class="b">Collections</span>.<span class="y">unmodifiableList</span>(lista);            <span class="c">// vista de solo lectura</span>
+<span class="b">Collections</span>.<span class="y">synchronizedList</span>(lista);           <span class="c">// envuelve con candado (legado)</span></pre>
+
+  <h3>Concurrencia: cuando hay varios hilos</h3>
+  <p>Las colecciones de <code>java.util</code> <strong>no</strong> son seguras para hilos. Para usarlas desde varios hilos a la vez, Java ofrece el paquete <code>java.util.concurrent</code>:</p>
+  <table>
+    <thead><tr><th>Necesito</th><th>Clase</th><th>Import</th></tr></thead>
+    <tbody>
+      <tr><td>Map seguro y rápido (sin bloquear todo)</td><td><code>ConcurrentHashMap</code></td><td><code>java.util.concurrent.*</code></td></tr>
+      <tr><td>Cola FIFO segura</td><td><code>ConcurrentLinkedQueue</code></td><td><code>java.util.concurrent.*</code></td></tr>
+      <tr><td>Cola con bloqueo (productor/consumidor)</td><td><code>ArrayBlockingQueue</code>, <code>LinkedBlockingQueue</code></td><td><code>java.util.concurrent.*</code></td></tr>
+      <tr><td>Contadores atómicos sin candado</td><td><code>AtomicInteger</code>, <code>AtomicLong</code></td><td><code>java.util.concurrent.atomic.*</code></td></tr>
+      <tr><td>Lista segura</td><td><code>CopyOnWriteArrayList</code></td><td><code>java.util.concurrent.*</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>Hashtable</code> (con <em>t</em> minúscula, clase antigua) y <code>Vector</code> <strong>no se usan hoy</strong>. Bloquean toda la colección en cada operación. Se reemplazan por <code>HashMap</code> y <code>ArrayList</code>, o por las versiones de <code>java.util.concurrent</code> cuando hay hilos.</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Dato real</span>
+    <p><code>ConcurrentHashMap</code> no bloquea todo el mapa: divide el trabajo en segmentos y solo bloquea la parte afectada. Eso permite que muchos hilos lean y escriban a la vez sin pisarse, algo que <code>Hashtable</code> no logra.</p>
+  </div>
+
+  <h3>Streams: la colección como origen de datos</h3>
+  <p>Los <em>streams</em> (Java 8, en <code>java.util.stream</code>) no son una colección: son una <strong>tubería</strong> de operaciones sobre una colección. Se describe qué quieres, no cómo recorrerlo.</p>
+<pre><span class="b">List</span>&lt;<span class="b">String</span>&gt; largos = personas.<span class="y">stream</span>()
+        .<span class="y">filter</span>(p -&gt; p.<span class="y">edad</span>() &gt;= <span class="r">18</span>)
+        .<span class="y">map</span>(<span class="b">Persona</span>::nombre)
+        .<span class="y">sorted</span>()
+        .<span class="y">collect</span>(<span class="b">Collectors</span>.<span class="y">toList</span>());</pre>
+  <p>Úsalos para <em>transformar</em> y <em>filtrar</em>, no para acumular dentro de un bucle. Si lo que necesitas es sumar un acumulador complicado con efectos secundarios, un bucle normal suele ser más claro.</p>
+
+  <div class="box key"><span class="lbl">Lo esencial de esta sección</span>
+    <p>Colecciones inmutables para datos fijos (<code>List.of</code>). Declara siempre por la interfaz. Y en cuanto haya hilos, cambia <code>java.util</code> por <code>java.util.concurrent</code>: no es opcional.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué diferencia hay entre <code>Collection</code> y <code>Collections</code>?<br><em><code>Collection</code> es la interfaz raíz; <code>Collections</code> es una clase con métodos de utilidad estáticos.</em></li>
+        <li>¿Por qué <code>List.of(...)</code> es preferible a crear una lista y no modificarla?<br><em>Porque la inmutabilidad queda garantizada por el tipo: nadie puede alterarla, ni por descuido.</em></li>
+        <li>¿Qué colección uso si dos hilos escriben en un contador de frecuencia por clave?<br><em><code>ConcurrentHashMap</code> (o <code>HashMap</code> + <code>AtomicInteger</code>, según el caso).</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="apa" class="inner">
+  <h2><span class="num">APÉNDICE A</span>Chuleta de complejidades</h2>
+  <p>Todas las complejidades que aparecen en el tema, en una sola tabla, para consulta rápida. <em>n</em> es el número de elementos guardados. "Promedio" se refiere al caso típico de una tabla hash bien dimensionada; "peor" es cuando todos los hashes caen en el mismo cubo.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Operación</th>
+        <th>ArrayList</th>
+        <th>LinkedList</th>
+        <th>HashSet</th>
+        <th>TreeSet</th>
+        <th>HashMap</th>
+        <th>TreeMap</th>
+        <th>ArrayDeque</th>
+        <th>PriorityQueue</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Acceso por índice <code>get(i)</code></td><td>O(1)</td><td>O(n)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Buscar (<code>contains</code>)</td><td>O(n)</td><td>O(n)</td><td>O(1) prom.</td><td>O(log n)</td><td>O(1) prom.</td><td>O(log n)</td><td>O(n)</td><td>O(n)</td></tr>
+      <tr><td>Insertar (<code>add</code>) al final</td><td>O(1)*</td><td>O(1)</td><td>O(1) prom.</td><td>O(log n)</td><td>O(1) prom.</td><td>O(log n)</td><td>O(1)</td><td>O(log n)</td></tr>
+      <tr><td>Insertar al inicio</td><td>O(n)</td><td>O(1)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>O(1)</td><td>—</td></tr>
+      <tr><td>Insertar en el medio (con índice)</td><td>O(n)</td><td>O(n)†</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Eliminar</td><td>O(n)</td><td>O(1)†</td><td>O(1) prom.</td><td>O(log n)</td><td>O(1) prom.</td><td>O(log n)</td><td>O(1)</td><td>O(log n)</td></tr>
+      <tr><td>Sacar el primero</td><td>O(n)</td><td>O(1)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>O(1)</td><td>O(log n)‡</td></tr>
+      <tr><td>Recorrer todo</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td><td>O(n)</td></tr>
+      <tr><td>Ordenar</td><td>O(n log n)</td><td>O(n log n)</td><td>—</td><td>ya está</td><td>—</td><td>ya está</td><td>—</td><td>—</td></tr>
+      <tr><td>Peor caso de buscar</td><td>O(n)</td><td>O(n)</td><td>O(n)§</td><td>O(log n)</td><td>O(n)§</td><td>O(log n)</td><td>O(n)</td><td>O(n)</td></tr>
+    </tbody>
+  </table>
+
+  <p class="meta">* Amortizado: casi siempre O(1), pero al llenarse se copia el array (O(n)) una vez cada tanto.<br>
+  † O(1) solo si ya tienes el <code>Iterator</code> posicionado; con un índice, primero hay que recorrer hasta ese punto.<br>
+  ‡ <code>PriorityQueue</code> no guarda orden total: solo garantiza que el primero es el menor (o el de mayor prioridad).<br>
+  § Si todos los hashes colisionan, la tabla degenera; la JDK 8+ la convierte en árbol y baja a O(log n).</p>
+
+  <div class="box key"><span class="lbl">Cómo leer la chuleta</span>
+    <p>Busca tu operación más frecuente (la que ocurre dentro del bucle) y mira su columna. Si la célula dice O(n) y esa operación ocurre n veces, ahí tienes tu O(n²). Ese es el único número que importa.</p>
+  </div>
+</section>
+
+<section id="apb" class="inner">
+  <h2><span class="num">APÉNDICE B</span>Chuleta de <em>imports</em></h2>
+  <p>Casi todo lo de este tema vive en <code>java.util</code>. Puedes escribir cada clase por separado o importar el paquete completo con <code>import java.util.*;</code> (lo más común).</p>
+
+  <table>
+    <thead><tr><th>Qué quieres usar</th><th>Import exacto</th><th>Qué es</th></tr></thead>
+    <tbody>
+      <tr><td><code>List</code>, <code>Set</code>, <code>Map</code>, <code>Queue</code>, <code>Deque</code></td><td><code>java.util.List</code> (etc.)</td><td>Las interfaces</td></tr>
+      <tr><td><code>ArrayList</code></td><td><code>java.util.ArrayList</code></td><td>Lista sobre array dinámico</td></tr>
+      <tr><td><code>LinkedList</code></td><td><code>java.util.LinkedList</code></td><td>Lista doblemente enlazada</td></tr>
+      <tr><td><code>HashSet</code></td><td><code>java.util.HashSet</code></td><td>Conjunto con tabla hash</td></tr>
+      <tr><td><code>LinkedHashSet</code></td><td><code>java.util.LinkedHashSet</code></td><td>Conjunto con orden de inserción</td></tr>
+      <tr><td><code>TreeSet</code></td><td><code>java.util.TreeSet</code></td><td>Conjunto ordenado (árbol)</td></tr>
+      <tr><td><code>HashMap</code></td><td><code>java.util.HashMap</code></td><td>Diccionario con tabla hash</td></tr>
+      <tr><td><code>LinkedHashMap</code></td><td><code>java.util.LinkedHashMap</code></td><td>Diccionario con orden de inserción</td></tr>
+      <tr><td><code>TreeMap</code></td><td><code>java.util.TreeMap</code></td><td>Diccionario con claves ordenadas</td></tr>
+      <tr><td><code>ArrayDeque</code></td><td><code>java.util.ArrayDeque</code></td><td>Cola y pila (la recomendada)</td></tr>
+      <tr><td><code>PriorityQueue</code></td><td><code>java.util.PriorityQueue</code></td><td>Cola por prioridad (montículo)</td></tr>
+      <tr><td><code>Iterator</code></td><td><code>java.util.Iterator</code></td><td>Recorrido y borrado seguro</td></tr>
+      <tr><td><code>Collections</code></td><td><code>java.util.Collections</code></td><td>Métodos de utilidad (<code>sort</code>, <code>unmodifiableList</code>…)</td></tr>
+      <tr><td><code>Comparator</code></td><td><code>java.util.Comparator</code></td><td>Regla de orden externa</td></tr>
+      <tr><td><code>Comparable</code></td><td><em>Sin import</em> (está en <code>java.lang</code>)</td><td>Orden natural de la propia clase</td></tr>
+      <tr><td><code>Objects</code></td><td><code>java.util.Objects</code></td><td><code>Objects.hash</code>, <code>Objects.equals</code></td></tr>
+      <tr><td><code>Arrays</code></td><td><code>java.util.Arrays</code></td><td>Utilidades sobre arrays</td></tr>
+      <tr><td><code>ConcurrentHashMap</code></td><td><code>java.util.concurrent.ConcurrentHashMap</code></td><td>Map seguro para hilos</td></tr>
+      <tr><td><code>ArrayBlockingQueue</code></td><td><code>java.util.concurrent.ArrayBlockingQueue</code></td><td>Cola con bloqueo</td></tr>
+      <tr><td><code>AtomicInteger</code></td><td><code>java.util.concurrent.atomic.AtomicInteger</code></td><td>Contador atómico</td></tr>
+      <tr><td><code>Stream</code>, <code>Collectors</code></td><td><code>java.util.stream.Stream</code></td><td>La tubería de operaciones</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>java.awt.List</code> es <strong>otra cosa</strong> (una lista gráfica de ventana). Si escribes <code>import java.awt.*;</code> junto con <code>import java.util.*;</code>, el nombre <code>List</code> se vuelve ambiguo y el compilador protesta. Por eso conviene el import explícito de la clase cuando hay dudas.</p>
+  </div>
+</section>
+
+<section id="apc" class="inner">
+  <h2><span class="num">APÉNDICE C</span>Cuándo <em>NO</em> usar cada una</h2>
+  <p>Elegir bien también es saber descartar. Esta es la cara B de la (sección 13).</p>
+
+  <table>
+    <thead><tr><th>Colección</th><th>NO la uses si…</th><th>Usa en su lugar</th></tr></thead>
+    <tbody>
+      <tr><td><code>ArrayList</code></td><td>Insertas y borras muchísimo al principio o en el medio, o buscas por valor dentro de bucles.</td><td><code>ArrayDeque</code> (extremos), <code>HashSet</code>/<code>HashMap</code> (búsqueda)</td></tr>
+      <tr><td><code>LinkedList</code></td><td>Solo quieres una lista normal. Sus nodos dispersos castigan la caché.</td><td><code>ArrayList</code></td></tr>
+      <tr><td><code>HashMap</code></td><td>Necesitas que el orden de salida sea estable, o recorrer claves en un rango.</td><td><code>LinkedHashMap</code>, <code>TreeMap</code></td></tr>
+      <tr><td><code>HashSet</code></td><td>Necesitas orden (de inserción o por valor) o elementos duplicados.</td><td><code>LinkedHashSet</code>, <code>TreeSet</code>, <code>ArrayList</code></td></tr>
+      <tr><td><code>TreeMap</code> / <code>TreeSet</code></td><td>Solo buscas por igualdad y quieres velocidad bruta. O(log n) es más lento que O(1).</td><td><code>HashMap</code> / <code>HashSet</code></td></tr>
+      <tr><td><code>ArrayDeque</code></td><td>Necesitas acceso por índice en medio, o buscar por valor.</td><td><code>ArrayList</code>, <code>HashSet</code></td></tr>
+      <tr><td><code>PriorityQueue</code></td><td>Necesitas recorrer todos los elementos <em>ordenados</em> o buscar por valor.</td><td><code>TreeSet</code>, o ordenar un <code>ArrayList</code></td></tr>
+      <tr><td><code>Stack</code> / <code>Vector</code> / <code>Hashtable</code></td><td>Siempre. Son clases legadas: sincronizan todo y frenan.</td><td><code>ArrayDeque</code> / <code>ArrayList</code> / <code>HashMap</code></td></tr>
+      <tr><td>Cualquiera de <code>java.util</code></td><td>Varios hilos la modifican a la vez.</td><td><code>java.util.concurrent.*</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box danger"><span class="lbl">La trampa más cara</span>
+    <p>Usar <code>TreeMap</code> "por si acaso" o <code>LinkedList</code> "porque suena a lista". Cada una paga un precio: el árbol mantiene el orden a costa de O(log n) en cada operación, y la lista enlazada paga con saltos de memoria. Si no necesitas lo que ofrecen, te están cobrando por nada.</p>
+  </div>
+</section>
+
+<section id="glosario" class="inner">
+  <h2><span class="num">CONSULTA</span>Glosario A–Z</h2>
+  <p>Todos los términos del tema, en orden alfabético. Escribe para filtrar.</p>
+  <input id="glossFilter" placeholder="Filtrar el glosario… (ej. hash, cubo, amortizado, O(n))" autocomplete="off">
+
+  <div class="az">
+    <a href="#gl-a">A</a><a href="#gl-b">B</a><a href="#gl-c">C</a><a href="#gl-d">D</a>
+    <a href="#gl-e">E</a><a href="#gl-f">F</a><a href="#gl-h">H</a><a href="#gl-i">I</a>
+    <a href="#gl-l">L</a><a href="#gl-o">O</a><a href="#gl-p">P</a><a href="#gl-r">R</a>
+    <a href="#gl-s">S</a><a href="#gl-t">T</a><a href="#gl-v">V</a>
+  </div>
+
+  <h4 class="gl-letter" id="gl-a">A</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Amortizado <span class="en">amortized</span></dt><dd>Costo promedio de una operación a lo largo de muchas llamadas, repartiendo los picos caros. Insertar al final en un <code>ArrayList</code> es O(1) amortizado: casi siempre instantáneo, salvo cuando toca copiar el array (sección 8).</dd></div>
+    <div class="ge"><dt>Árbol binario de búsqueda <span class="en">BST</span></dt><dd>Árbol en el que cada nodo tiene izquierda (menores) y derecha (mayores). Buscar cuesta O(log n) si está equilibrado, y O(n) si degenera en una "línea". Por eso existen los árboles auto-equilibrados (sección 11).</dd></div>
+    <div class="ge"><dt>Árbol rojo-negro <span class="en">red-black tree</span></dt><dd>Árbol binario de búsqueda que se mantiene equilibrado con dos colores y cinco reglas. Es lo que usa <code>TreeMap</code>/<code>TreeSet</code> por dentro (sección 11).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-b">B</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Big-O</dt><dd>Notación que describe cómo crece el costo de un algoritmo cuando crece la entrada. O(1) constante, O(log n) logarítmico, O(n) lineal, O(n log n), O(n²) cuadrático (sección 3).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-c">C</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Capacidad <span class="en">capacity</span></dt><dd>Cuántos elementos caben actualmente en una estructura "sin crecer". La <em>capacidad</em> no es lo mismo que el <em>tamaño</em> (<code>size</code>): un <code>ArrayList</code> puede tener capacidad 16 y tamaño 3 (sección 8).</dd></div>
+    <div class="ge"><dt>Colección <span class="en">collection</span></dt><dd>Objeto que agrupa varios elementos. En Java, <code>Collection</code> es la interfaz raíz de <code>List</code>, <code>Set</code> y <code>Queue</code>; <code>Map</code> queda aparte porque guarda pares (sección 2).</dd></div>
+    <div class="ge"><dt>Colisión <span class="en">collision</span></dt><dd>Ocurre cuando dos claves distintas producen el mismo índice en una tabla hash. No es un error: se resuelve guardándolas juntas en el mismo cubo (sección 10).</dd></div>
+    <div class="ge"><dt>Comparable</dt><dd>Interfaz que le da a una clase su <strong>orden natural</strong>: define <code>compareTo</code>. Es lo que permite meter objetos en un <code>TreeSet</code> o <code>PriorityQueue</code> (sección 13).</dd></div>
+    <div class="ge"><dt>Comparator</dt><dd>Regla de orden <strong>externa</strong> a la clase. Sirve para ordenar lo mismo de varias formas distintas sin tocar la clase (sección 5).</dd></div>
+    <div class="ge"><dt>Cubo <span class="en">bucket</span></dt><dd>Cada "cajón" de una tabla hash, identificado por un índice. Las claves que caen en el mismo cubo se guardan en una lista (o árbol) dentro de él (sección 10).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-d">D</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Deque <span class="en">double-ended queue</span></dt><dd>Cola de doble extremo: se puede insertar y sacar por ambos lados. Sirve como cola (FIFO) y como pila (LIFO). La implementación recomendada es <code>ArrayDeque</code> (sección 7).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-e">E</h4>
+  <dl class="gl">
+    <div class="ge"><dt>equals()</dt><dd>Método que decide si dos objetos son <em>iguales en contenido</em>. Por defecto compara identidad (misma dirección). Si lo sobrescribes, hay que sobrescribir <code>hashCode</code> de forma coherente (sección 12).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-f">F</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Factor de carga <span class="en">load factor</span></dt><dd>Proporción de ocupación a partir de la cual una tabla hash se agranda. En <code>HashMap</code> es 0,75: cuando el 75 % de los cubos tiene algo, la tabla duplica su capacidad (sección 10).</dd></div>
+    <div class="ge"><dt>FIFO</dt><dd><em>First In, First Out</em>: el primero que entra es el primero que sale. Es el comportamiento de una cola (sección 7).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-h">H</h4>
+  <dl class="gl">
+    <div class="ge"><dt>hashCode()</dt><dd>Número entero que resume un objeto, para repartirlo entre los cubos de una tabla hash. Dos objetos iguales <strong>deben</strong> tener el mismo hashCode; dos distintos pueden compartirlo (sección 12).</dd></div>
+    <div class="ge"><dt>HashMap</dt><dd>Diccionario sobre tabla hash, sin orden garantizado. La opción por defecto para clave→valor (sección 6, sección 10).</dd></div>
+    <div class="ge"><dt>Heap (montículo) <span class="en">heap</span></dt><dd>Zona de memoria donde viven los objetos (a diferencia de la pila, <em>stack</em>, que guarda variables locales y llamadas). No confundir con la clase <code>PriorityQueue</code>, que implementa un montículo binario (sección 7).</dd></div>
+    <div class="ge"><dt>Homogénea (colección)</dt><dd>Colección donde todos los elementos son del mismo tipo. Los genéricos <code>&lt;T&gt;</code> de Java lo garantizan en tiempo de compilación (sección 2).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-i">I</h4>
+  <dl class="gl">
+    <div class="ge"><dt>import</dt><dd>Instrucción que trae al archivo una clase de otro paquete. Las colecciones viven casi todas en <code>java.util</code> (apéndice B).</dd></div>
+    <div class="ge"><dt>Inmutable (colección)</dt><dd>Colección que no se puede modificar tras crearla, como las de <code>List.of()</code>. Son seguras de compartir y evitan cambios accidentales (sección 15).</dd></div>
+    <div class="ge"><dt>Iterador <span class="en">iterator</span></dt><dd>Objeto que recorre una colección elemento a elemento y permite borrar con seguridad durante el recorrido (sección 14).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-l">L</h4>
+  <dl class="gl">
+    <div class="ge"><dt>LIFO</dt><dd><em>Last In, First Out</em>: el último que entra es el primero que sale. Es el comportamiento de una pila (sección 7).</dd></div>
+    <div class="ge"><dt>Lista enlazada <span class="en">linked list</span></dt><dd>Estructura donde cada elemento es un nodo que guarda su valor y un puntero al siguiente. Insertar es barato; llegar al elemento i exige recorrer (sección 9).</dd></div>
+    <div class="ge"><dt>Localidad de caché <span class="en">cache locality</span></dt><dd>Ventaja de tener los datos contiguos en memoria: el procesador los trae en bloque y los recorre mucho más rápido. Es la razón por la que <code>ArrayList</code> suele ganar a <code>LinkedList</code> (sección 9, sección 14).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-o">O</h4>
+  <dl class="gl">
+    <div class="ge"><dt>O(1)</dt><dd>Costo constante: da igual que haya 10 o 10 millones de elementos, tarda lo mismo (sección 3).</dd></div>
+    <div class="ge"><dt>O(log n)</dt><dd>Costo logarítmico: cada paso descarta la mitad del problema. Duplicar los elementos añade un solo paso. Es lo que cuesta buscar en un árbol equilibrado (sección 3, sección 11).</dd></div>
+    <div class="ge"><dt>O(n)</dt><dd>Costo lineal: crece en proporción a los elementos. Recorrer una lista es O(n) (sección 3).</dd></div>
+    <div class="ge"><dt>O(n log n)</dt><dd>Costo del mejor ordenamiento por comparación (mergesort, timsort). Es el suelo de "ordenar" (sección 3).</dd></div>
+    <div class="ge"><dt>O(n²)</dt><dd>Costo cuadrático: el clásico "bucle dentro de bucle". Con 10.000 elementos son 100 millones de pasos. Es el síntoma de un método O(n) escondido dentro de un bucle (sección 14).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-p">P</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Pila <span class="en">stack</span></dt><dd>Estructura LIFO. En Java moderno se implementa con <code>ArrayDeque</code> (<code>push</code>/<code>pop</code>); la clase <code>Stack</code> es legada (sección 7).</dd></div>
+    <div class="ge"><dt>PriorityQueue</dt><dd>Cola en la que el primero en salir no es el más antiguo, sino el de mayor prioridad (menor valor, por defecto). Se implementa con un montículo binario (sección 7).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-r">R</h4>
+  <dl class="gl">
+    <div class="ge"><dt>record</dt><dd>Clase concisa de Java 16+ que genera automáticamente <code>equals</code>, <code>hashCode</code> y <code>toString</code>. Ideal para claves inmutables (sección 12).</dd></div>
+    <div class="ge"><dt>Rehash</dt><dd>Recalcular la posición de todas las claves cuando una tabla hash se agranda, porque el índice depende de la capacidad (sección 10).</dd></div>
+    <div class="ge"><dt>Rotación <span class="en">rotation</span></dt><dd>Operación local de un árbol que cambia la forma sin romper el orden, para reequilibrarlo. Es la pieza que mantiene un rojo-negro en O(log n) (sección 11).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-s">S</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Set</dt><dd>Colección sin elementos repetidos. Decide "repetido" usando <code>equals</code> y <code>hashCode</code> (sección 5).</dd></div>
+    <div class="ge"><dt>Stream</dt><dd>Tubería de operaciones (filtrar, transformar, agrupar) sobre una colección. No es una estructura de datos: es una forma de recorrerla (sección 15).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-t">T</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Tabla hash <span class="en">hash table</span></dt><dd>Estructura que calcula la posición de un elemento a partir de su clave, logrando búsquedas O(1) en promedio. Es el motor de <code>HashMap</code> y <code>HashSet</code> (sección 10).</dd></div>
+    <div class="ge"><dt>Tamaño <span class="en">size</span></dt><dd>Cuántos elementos hay actualmente guardados. Distinto de la capacidad (sección 8).</dd></div>
+    <div class="ge"><dt>Treeify <span class="en">treeify</span></dt><dd>Conversión automática de un cubo de tabla hash en un árbol, cuando acumula demasiadas colisiones (umbral 8 en la JDK). Evita que el peor caso sea O(n) (sección 10).</dd></div>
+    <div class="ge"><dt>Type erasure</dt><dd>Mecanismo por el que Java borra los genéricos <code>&lt;T&gt;</code> al compilar: existen para el compilador, no en tiempo de ejecución. Por eso no puedes crear <code>new T[]</code> (sección 2).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-v">V</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Vista <span class="en">view</span></dt><dd>Objeto que refleja otra colección sin copiarla. <code>keySet()</code> o <code>subList()</code> son vistas: cambiarlas cambia el original (sección 6).</dd></div>
+  </dl>
+
+  <div class="box key"><span class="lbl">Cómo usar el glosario</span>
+    <p>Cada término apunta a la sección donde se explica con detalle. Si vuelves al tema meses después, este es el sitio por donde empezar.</p>
+  </div>
+</section>
+
+<section id="refs" class="inner">
+  <h2><span class="num">CONSULTA</span>Referencias</h2>
+  <p>Todo lo que explica este tema tiene detrás una fuente oficial. Aquí están agrupadas, por si quieres ir más allá.</p>
+
+  <h3>Documentación oficial de Java</h3>
+  <table>
+    <thead><tr><th>Tema</th><th>Fuente</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td>Colecciones (<em>Collections Framework</em>)</td><td><code>Oracle · Java API Specification, paquete java.util</code></td><td>La descripción oficial de cada clase e interfaz, con sus métodos y su complejidad declarada (secciones 2, 4–7).</td></tr>
+      <tr><td>Contrato de <code>equals</code> y <code>hashCode</code></td><td><code>Oracle · javadoc de java.lang.Object</code></td><td>Las reglas exactas que deben cumplir ambos métodos (sección 12).</td></tr>
+      <tr><td><code>HashMap</code> por dentro</td><td><code>Oracle · javadoc de java.util.HashMap</code> y el código fuente de la JDK</td><td>Los valores reales de capacidad inicial, factor de carga y umbral de árbol (sección 10).</td></tr>
+      <tr><td><code>ArrayList</code> por dentro</td><td><code>Oracle · javadoc de java.util.ArrayList</code> y el código fuente de la JDK</td><td>La capacidad inicial 10 y la fórmula de crecimiento (sección 8).</td></tr>
+      <tr><td>Árboles</td><td><code>Oracle · javadoc de java.util.TreeMap</code></td><td>La garantía de O(log n) y el papel de <code>Comparable</code>/<code>Comparator</code> (sección 11).</td></tr>
+      <tr><td>Concurrencia</td><td><code>Oracle · Java API, paquete java.util.concurrent</code></td><td>Las clases seguras para hilos y sus garantías (sección 15).</td></tr>
+      <tr><td><em>Streams</em></td><td><code>Oracle · Java API, paquete java.util.stream</code></td><td>Las operaciones de la tubería y los <em>collectors</em> (sección 15).</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Algoritmos y complejidad</h3>
+  <ul>
+    <li><strong>Introduction to Algorithms</strong> (Cormen, Leiserson, Rivest, Stein — "CLRS") · el libro de referencia en algoritmos y estructuras de datos; sus capítulos de tablas hash y árboles rojo-negro son la fuente canónica (secciones 10, 11).</li>
+    <li><strong>The Java Language Specification</strong> (Oracle) · para el detalle fino del lenguaje: genéricos, <em>type erasure</em> y el contrato de <code>Object</code> (sección 2, sección 12).</li>
+    <li><strong>Big-O Cheat Sheet</strong> (<code>bigocheatsheet.com</code>) · tabla comparativa de complejidades de estructuras y algoritmos, útil como contraste con el apéndice A.</li>
+  </ul>
+
+  <h3>Cómo se implementa, en la práctica</h3>
+  <ul>
+    <li><strong>Código fuente de la OpenJDK</strong> · leer directamente <code>ArrayList.java</code> o <code>HashMap.java</code> es la mejor forma de comprobar lo que dice esta guía; son archivos más cortos de lo que parecen.</li>
+    <li><strong>Guava (Google)</strong> · colecciones adicionales en Java; sus javadocs explican bien cuándo las de <code>java.util</code> no bastan, y su documentación técnica justifica cada decisión.</li>
+    <li><strong>Effective Java</strong> (Joshua Bloch) · los capítulos sobre colecciones y sobre <code>equals</code>/<code>hashCode</code> son la referencia práctica por excelencia (sección 12).</li>
+  </ul>
+
+  <div class="box key"><span class="lbl">Cómo usar estas referencias</span>
+    <p>No hace falta leerlas todas. La regla es: cuando una sección te deje una duda concreta, ve al javadoc de esa clase. Ahí está el dato exacto, y esta guía existe para que llegues a él con el contexto ya montado.</p>
+  </div>
+</section>
+
+<section id="herramientas" class="inner">
+  <h2><span class="num">CONSULTA</span>Herramientas interactivas</h2>
+  <p>Tres herramientas para ver con tus ojos lo que explican las secciones. Todo funciona <strong>en tu navegador</strong>; nada se envía a ningún sitio.</p>
+
+  <div class="tool">
+    <h4>1 · Medidor de crecimiento (Big-O)</h4>
+    <p>Escribe cuántos elementos tiene tu problema y compara cuántas operaciones exige cada complejidad. Es la sección 3 puesta a prueba con tus propios números.</p>
+    <p><span class="pill">O(1)</span><span class="pill">O(log n)</span><span class="pill">O(n)</span><span class="pill">O(n log n)</span><span class="pill">O(n²)</span></p>
+    <input class="ctl" id="boN" value="100000" autocomplete="off">
+    <div class="out" id="boOut"></div>
+  </div>
+
+  <div class="tool">
+    <h4>2 · Simulador de tabla hash</h4>
+    <p>Escribe claves (una por línea) y una capacidad de tabla. La herramienta calcula el <code>hashCode</code> como lo hace un <code>String</code> en Java, le aplica la función de dispersión (<code>h ^ (h &gt;&gt;&gt; 16)</code>) y muestra en qué cubo cae cada clave. Con eso ves las colisiones en directo. Es la sección 10 hecha manipulable.</p>
+    <textarea class="ctl" id="hsIn">ana
+luis
+marta
+pedro
+sofia
+ana</textarea>
+    <input class="ctl" id="hsCap" value="8" autocomplete="off">
+    <div class="out" id="hsOut"></div>
+  </div>
+
+  <div class="tool">
+    <h4>3 · Recomendador de colección</h4>
+    <p>Responde tres preguntas sobre lo que necesitas y la herramienta te dice qué colección usar, su <em>import</em>, su complejidad y por qué. Es la sección 13 automatizada.</p>
+    <div class="out" id="rcOut"></div>
+  </div>
+
+  <div class="box key"><span class="lbl">Lo que estas tres herramientas demuestran juntas</span>
+    <p>Que "elegir una colección" no es cuestión de gusto: es una cuenta. El medidor cuantifica el costo; el simulador muestra por qué la búsqueda es O(1) (reparte las claves en cubos); y el recomendador convierte tres preguntas en una decisión con un import, una complejidad y una razón.</p>
+  </div>
+</section>
+
+</main>
+
+</div>
+
+<button id="top" title="Volver arriba">^</button>
+
+<script src="_motor.js"></script>
+<script>
+/* Herramientas interactivas propias de este tema.
+   Dependen del motor compartido: esperan que _motor.js ya se haya ejecutado. */
+(function () {
+  "use strict";
+  var escapeHtml = window.__guiaUtil.escapeHtml;
+
+  /* ============================================================
+     1 · Medidor de crecimiento (Big-O)
+     ============================================================ */
+  var boN = document.getElementById("boN");
+  var boOut = document.getElementById("boOut");
+
+  function fmt(x) {
+    if (!isFinite(x)) return "—";
+    if (x >= 1e15) return x.toExponential(2);
+    return Math.round(x).toLocaleString("es-CO");
+  }
+  function boRow(label, val, note) {
+    return '<div class="row"><span>' + escapeHtml(label) + ' — <em>' +
+      escapeHtml(note) + '</em></span><b>' + escapeHtml(fmt(val)) + '</b></div>';
+  }
+  function medir() {
+    var n = Number(String(boN.value).replace(/[^\d]/g, ""));
+    if (!n || n <= 0) { boOut.innerHTML = '<div class="row"><span>—</span><b>Escribe un número mayor que 0.</b></div>'; return; }
+    var lg = Math.log2(n);
+    var html = "";
+    html += boRow("O(1) · constante", 1, "acceso directo");
+    html += boRow("O(log n) · logarítmico", lg, "búsqueda en árbol / binaria");
+    html += boRow("O(n) · lineal", n, "recorrer la colección");
+    html += boRow("O(n log n) · casi lineal", n * lg, "ordenar");
+    html += boRow("O(n²) · cuadrático", n * n, "bucle dentro de bucle");
+    boOut.innerHTML = html;
+  }
+  if (boN && boOut) {
+    boN.addEventListener("input", medir);
+    medir();
+  }
+
+  /* ============================================================
+     2 · Simulador de tabla hash
+     ============================================================ */
+  var hsIn = document.getElementById("hsIn");
+  var hsCap = document.getElementById("hsCap");
+  var hsOut = document.getElementById("hsOut");
+
+  function javaStringHash(s) {
+    var h = 0;
+    for (var i = 0; i < s.length; i++) {
+      h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;   /* 32 bits con desbordamiento */
+    }
+    return h;
+  }
+  function spread(h) {   /* h ^ (h >>> 16) */
+    return (h ^ (h >>> 16)) | 0;
+  }
+  function simularHash() {
+    if (!hsIn || !hsOut) return;
+    var capRaw = Number(String(hsCap.value).replace(/[^\d]/g, ""));
+    var cap = 1;
+    while (cap < (capRaw || 8)) cap <<= 1;   /* la capacidad siempre es potencia de 2 */
+    var claves = hsIn.value.split("\n").map(function (x) { return x.trim(); }).filter(function (x) { return x !== ""; });
+    if (!claves.length) { hsOut.innerHTML = '<div class="row"><span>—</span><b>Escribe al menos una clave.</b></div>'; return; }
+
+    var cubos = [];
+    for (var i = 0; i < cap; i++) cubos.push([]);
+    var vistos = {}, repetidas = 0;
+    var filas = "";
+    claves.forEach(function (k) {
+      var h = javaStringHash(k);
+      var s = spread(h);
+      var idx = s & (cap - 1);   /* hash & (n - 1) */
+      var dup = Object.prototype.hasOwnProperty.call(vistos, k);
+      if (dup) repetidas++;
+      vistos[k] = true;
+      cubos[idx].push(k);
+      filas += '<div class="row"><span><code>' + escapeHtml(k) + '</code> → hash ' +
+        escapeHtml(h) + ' → spread ' + escapeHtml(s) + '</span><b style="color:' +
+        (dup ? 'var(--warn)' : 'var(--acc)') + '">cubo ' + idx + (dup ? ' (ya estaba)' : '') + '</b></div>';
+    });
+
+    var ocupados = 0, colisiones = 0;
+    var mapa = "";
+    cubos.forEach(function (c, i) {
+      if (c.length) ocupados++;
+      if (c.length > 1) colisiones += c.length - 1;
+      mapa += '<div class="row"><span>cubo ' + i + '</span><b>' +
+        (c.length ? c.map(function (x) { return escapeHtml(x); }).join(", ") : "—") + '</b></div>';
+    });
+
+    var lf = (claves.length / cap);
+    hsOut.innerHTML =
+      '<div class="row"><span>Capacidad (potencia de 2)</span><b>' + cap + '</b></div>' +
+      '<div class="row"><span>Claves distintas</span><b>' + (claves.length - repetidas) + '</b></div>' +
+      '<div class="row"><span>Cubos ocupados</span><b>' + ocupados + ' de ' + cap + '</b></div>' +
+      '<div class="row"><span>Colisiones en el mismo cubo</span><b style="color:' + (colisiones ? 'var(--warn)' : 'var(--acc)') + '">' + colisiones + '</b></div>' +
+      '<div class="row"><span>Factor de carga</span><b>' + lf.toFixed(3) + (lf > 0.75 ? ' · ¡toca rehash!' : ' · holgado') + '</b></div>' +
+      '<div class="row"><span>Claves repetidas ignoradas</span><b>' + repetidas + '</b></div>' +
+      filas + '<div class="row" style="border:none"><span>Mapa de cubos</span><b></b></div>' + mapa;
+  }
+  if (hsIn && hsOut) {
+    hsIn.addEventListener("input", simularHash);
+    hsCap.addEventListener("input", simularHash);
+    simularHash();
+  }
+
+  /* ============================================================
+     3 · Recomendador de colección
+     ============================================================ */
+  var rcOut = document.getElementById("rcOut");
+
+  function recomendador() {
+    if (!rcOut) return;
+    var q1 = '<label class="pill" style="display:inline-block;margin:0 6px 8px 0">¿Qué guardas? ' +
+      '<select id="rc1" class="ctl" style="margin-top:6px">' +
+      '<option value="simple">Valores sueltos (nombres, correos, números)</option>' +
+      '<option value="par">Pares clave → valor (un diccionario)</option>' +
+      '<option value="prio">Elementos por prioridad (siempre saco el mayor/menor)</option>' +
+      '</select></label>';
+    var q2 = '<label class="pill" style="display:inline-block;margin:0 6px 8px 0">¿Importa el orden? ' +
+      '<select id="rc2" class="ctl" style="margin-top:6px">' +
+      '<option value="no">No me importa</option>' +
+      '<option value="ins">Sí, el orden en que los inserté</option>' +
+      '<option value="nat">Sí, ordenados por su valor</option>' +
+      '</select></label>';
+    var q3 = '<label class="pill" style="display:inline-block;margin:0 6px 8px 0">¿Admites repetidos? ' +
+      '<select id="rc3" class="ctl" style="margin-top:6px">' +
+      '<option value="no">No, cada elemento una sola vez</option>' +
+      '<option value="si">Sí, puede haber repetidos</option>' +
+      '</select></label>';
+
+    var r1 = document.getElementById("rc1"), r2 = document.getElementById("rc2"), r3 = document.getElementById("rc3");
+    var a = r1 ? r1.value : "simple", b = r2 ? r2.value : "no", c = r3 ? r3.value : "no";
+
+    var rec = null;
+    if (a === "par") {
+      if (b === "nat") rec = { n: "TreeMap", i: "java.util.TreeMap", cx: "O(log n)", why: "Diccionario con las claves siempre ordenadas, y además permite consultar rangos (subMap)." };
+      else if (b === "ins") rec = { n: "LinkedHashMap", i: "java.util.LinkedHashMap", cx: "O(1) promedio", why: "Diccionario que recuerda el orden de inserción al recorrerlo." };
+      else rec = { n: "HashMap", i: "java.util.HashMap", cx: "O(1) promedio", why: "La opción por defecto para clave→valor: la búsqueda más rápida y la más simple." };
+    } else if (a === "prio") {
+      rec = { n: "PriorityQueue", i: "java.util.PriorityQueue", cx: "O(log n) por operación", why: "Cola que siempre entrega primero el elemento de mayor prioridad. No garantiza el orden del resto." };
+    } else {
+      if (c === "no") {
+        if (b === "nat") rec = { n: "TreeSet", i: "java.util.TreeSet", cx: "O(log n)", why: "Conjunto sin repetidos que mantiene los elementos ordenados por su valor." };
+        else if (b === "ins") rec = { n: "LinkedHashSet", i: "java.util.LinkedHashSet", cx: "O(1) promedio", why: "Sin repetidos y con orden de inserción: ideal para listas de únicos que deben conservar su secuencia." };
+        else rec = { n: "HashSet", i: "java.util.HashSet", cx: "O(1) promedio", why: "Sin repetidos y sin orden: la forma más rápida de comprobar si algo ya está." };
+      } else {
+        if (b === "nat") rec = { n: "ArrayList + Collections.sort", i: "java.util.ArrayList", cx: "ordenar: O(n log n)", why: "Una lista permite repetidos; si necesitas orden por valor, la ordenas cuando haga falta." };
+        else rec = { n: "ArrayList", i: "java.util.ArrayList", cx: "get/put O(1)", why: "Lista clásica con acceso por posición y recorrido eficiente. La opción por defecto para colecciones con repetidos." };
+      }
+    }
+
+    var html = q1 + q2 + q3;
+    html += '<div class="row" style="border:none;margin-top:14px"><span></span><b></b></div>';
+    html += '<div class="row"><span>Colección recomendada</span><b style="color:var(--acc)">' + escapeHtml(rec.n) + '</b></div>';
+    html += '<div class="row"><span>Import</span><b><code>' + escapeHtml(rec.i) + '</code></b></div>';
+    html += '<div class="row"><span>Complejidad típica</span><b>' + escapeHtml(rec.cx) + '</b></div>';
+    html += '<div class="row" style="border:none"><span>Por qué</span><b style="font-weight:400;text-align:left">' + escapeHtml(rec.why) + '</b></div>';
+    html += '<p style="color:var(--fg3);font-size:12.5px;margin-top:10px">Si hay varios hilos modificándola a la vez, cambia a su equivalente de <code>java.util.concurrent</code> (sección 15).</p>';
+    rcOut.innerHTML = html;
+
+    ["rc1", "rc2", "rc3"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener("change", recomendador);
+    });
+  }
+  recomendador();
+})();
+</script>
+</body>
+</html>

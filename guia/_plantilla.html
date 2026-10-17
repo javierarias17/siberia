@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<!--
+================================================================================
+PLANTILLA DE TEMA  ·  Biblioteca de estudio
+================================================================================
+Copia este archivo a un nombre nuevo (por ejemplo tema03.html) y reemplaza los
+marcadores. NO lo edites in situ: sirve de molde para los temas que vengan.
+
+MARCADORES A REEMPLAZAR
+  @@NUM@@          numero del tema, ej: "Tema 03"
+  @@TITULO@@       titulo corto, aparece en el <title> y en el indice lateral
+  @@SUBTITULO@@    una linea de contexto, ej: "Redes y protocolos"
+  @@DESCRIPCION@@  parrafo de portada (2 o 3 frases)
+
+QUE CONSERVAR SIN CAMBIOS (el motor y el portal dependen de ellos)
+  <div id="prog">            barra de progreso superior
+  <aside id="side">          panel lateral
+  <a class="backlink">       enlace de vuelta al portal guia/index.html
+  #docSearch + #docResults   buscador global (los llena _motor.js)
+  #tocFilter + nav#toc       filtro de indice y lista de secciones
+  <main id="main">           contenido; _motor.js recorre "main section[id]"
+  <button id="top">          boton "volver arriba"
+  <script src="_motor.js">   motor compartido: indice, busqueda, progreso
+
+Cada tema enlaza SOLO _estilo.css y _motor.js. Si necesitas CSS nuevo, anadelo
+al final de _estilo.css (lo heredan todos los temas). Si necesitas logica
+compartida, anadela a _motor.js.
+
+CUERPO DE CADA SECCION (usa el patron de cajas de color)
+  <section id="sN" class="inner">
+    <h2><span class="num">SECCIÓN N</span>Titulo</h2>
+    <p>...</p>
+    <div class="box analogy"><span class="lbl">Analogía</span><p>...</p></div>
+    <div class="box real"><span class="lbl">Ejemplo real</span><p>...</p></div>
+    <div class="box warn"><span class="lbl">Ojo con esto</span><p>...</p></div>
+    <div class="box key"><span class="lbl">Idea clave</span><p>...</p></div>
+    <details class="saber"><summary>Saber más: tema</summary>
+      <div class="body">...</div></details>
+    <details class="quiz"><summary>Autoevaluación</summary>
+      <div class="body"><ol><li>Pregunta<br><em>Respuesta.</em></li></ol></div></details>
+  </section>
+
+  Cajas disponibles: analogy (violeta), real (verde), warn (ambar),
+  danger (rojo), exploit (azul), key (blanco).
+
+REGLAS DE ESTILO (ver INSTRUCTIVO-IA.md para el detalle completo)
+  - Español, trato de "tú", tono de profesor paciente.
+  - Primero la analogía, después la definición técnica.
+  - Numeros y datos REALES y verificables; nunca inventados.
+  - Referencias cruzadas entre secciones en formato "(sección N)".
+  - Los comentarios HTML no pueden contener dos guiones seguidos.
+
+ANTES DE PUBLICAR
+  1. Anade la parada (li class="stop") del tema en guia/index.html.
+  2. Comprueba que cada href del indice apunte a un id que existe.
+  3. Comprueba que <section>, <details>, <table> y <pre> cierren bien.
+================================================================================
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>@@TITULO@@ - Biblioteca de estudio</title>
+<link rel="stylesheet" href="_estilo.css">
+</head>
+<body>
+<div id="prog"></div>
+<div id="wrap">
+
+<aside id="side">
+  <a class="backlink" href="index.html">Volver a la biblioteca</a>
+  <h1>@@TITULO@@</h1>
+  <p class="sub">@@NUM@@ - @@SUBTITULO@@</p>
+  <input id="docSearch" placeholder="Buscar en toda la guía..." autocomplete="off">
+  <div id="docResults"></div>
+  <input id="tocFilter" placeholder="Filtrar índice..." autocomplete="off">
+  <nav id="toc">
+    <div class="grp">Primera parte</div>
+    <a href="#s1">1. Primera sección</a>
+    <a href="#s2">2. Segunda sección</a>
+    <div class="grp">Consulta</div>
+    <a href="#glosario">Glosario</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<header class="cover inner">
+  <div class="kicker">@@NUM@@</div>
+  <h1>@@TITULO@@</h1>
+  <p>@@DESCRIPCION@@</p>
+  <p class="meta">N secciones · glosario de N términos<br>Nivel: ...</p>
+</header>
+
+<section id="s1" class="inner">
+  <h2><span class="num">SECCIÓN 1</span>Primera sección</h2>
+  <p>Escribe aquí. El primer parrafo debería plantear el problema antes de resolverlo.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Una comparación con algo de la vida diaria.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Pregunta de repaso.<br><em>Respuesta breve.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="s2" class="inner">
+  <h2><span class="num">SECCIÓN 2</span>Segunda sección</h2>
+  <p>Sigue el hilo de la sección anterior.</p>
+</section>
+
+<section id="glosario" class="inner">
+  <h2><span class="num">CONSULTA</span>Glosario</h2>
+  <p>Ordena los términos alfabéticamente y actualiza el contador de la portada.</p>
+  <input id="glossFilter" placeholder="Filtrar términos..." autocomplete="off">
+  <dl class="gl">
+    <div class="ge"><dt>Término <span class="en">english</span></dt>
+      <dd>Definición breve (sección 1).</dd></div>
+  </dl>
+</section>
+
+</main>
+</div>
+
+<button id="top" title="Volver arriba">^</button>
+
+<script src="_motor.js"></script>
+<script>
+/* Herramientas interactivas propias de este tema (opcional).
+   Depende del motor compartido: espera que _motor.js ya se haya ejecutado. */
+(function () {
+  "use strict";
+  var escapeHtml = window.__guiaUtil.escapeHtml;
+  // var hex2 = window.__guiaUtil.hex2;
+
+  /* ============================================================
+     1. Herramienta propia: ejemplo vacío
+     ============================================================ */
+  // var entrada = document.getElementById("miEntrada");
+  // var salida = document.getElementById("miSalida");
+  // if (entrada && salida) { entrada.addEventListener("input", actualizar); actualizar(); }
+})();
+</script>
+</body>
+</html>

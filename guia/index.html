@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biblioteca de estudio · Apuntes de ingeniería</title>
+<link rel="stylesheet" href="_estilo.css">
+</head>
+<body>
+<div id="wrap">
+<main id="main">
+
+<header class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="inner hero-in">
+    <span class="hero-kicker">Biblioteca de estudio</span>
+    <h1>Apuntes de ingeniería,<br><span class="grad">de cero a detalle</span></h1>
+    <p class="hero-lead">Una colección de temas escritos para entenderlos <strong>de verdad</strong>: primero la analogía, después la definición técnica, y siempre con datos reales y verificables.</p>
+    <div class="hero-cta">
+      <a class="btn primary" href="del-bit-al-exploit.html">Empezar por el Tema 01</a>
+      <a class="btn ghost" href="#recorrido">Ver el recorrido</a>
+    </div>
+    <p class="hero-meta">2 temas publicados · 1 en preparación &nbsp;·&nbsp; un archivo por tema · estilo y motor compartidos</p>
+    <ul class="chips">
+      <li>Funciona sin internet</li>
+      <li>Sin dependencias</li>
+      <li>Tema oscuro</li>
+      <li>Español</li>
+    </ul>
+  </div>
+</header>
+
+<section id="recorrido" class="inner">
+  <h2><span class="num">RECORRIDO</span>Los temas, en orden</h2>
+  <p>La biblioteca no es una lista suelta: está pensada como un recorrido. Cada tema se lee por separado y funciona sin internet, pero este es el orden en el que se sostienen uno al otro.</p>
+
+  <ol class="route">
+
+    <li class="stop">
+      <div class="badge">01</div>
+      <div class="stop-body">
+        <div class="stop-head"><h3>Del bit al exploit</h3><span class="st">Publicado</span></div>
+        <p>Cómo funciona realmente un computador: bits, bytes, hexadecimal, ASCII, formatos de archivo, instrucciones del procesador, memoria, librerías y cómo todo eso explica un exploit de PlayStation 5.</p>
+        <div class="tags"><span>binario</span><span>hexadecimal</span><span>CPU</span><span>x86-64</span><span>memoria</span><span>PS5</span></div>
+        <a class="open" href="del-bit-al-exploit.html">Abrir el tema →</a>
+      </div>
+    </li>
+
+    <li class="stop">
+      <div class="badge">02</div>
+      <div class="stop-body">
+        <div class="stop-head"><h3>Estructuras de datos en Java</h3><span class="st">Publicado</span></div>
+        <p>Qué colección usar y por qué: <code>List</code>, <code>Set</code>, <code>Map</code> y <code>Queue</code> con su <em>import</em> exacto, su complejidad Big-O y su uso típico; y además cómo funcionan por dentro (array dinámico, lista enlazada, árbol rojo-negro y tabla hash).</p>
+        <div class="tags"><span>java.util</span><span>Big-O</span><span>ArrayList</span><span>HashMap</span><span>TreeMap</span><span>hashtable</span></div>
+        <a class="open" href="java-estructuras.html">Abrir el tema →</a>
+      </div>
+    </li>
+
+    <li class="stop soon">
+      <div class="badge">03</div>
+      <div class="stop-body">
+        <div class="stop-head"><h3>En preparación</h3><span class="st">Próximamente</span></div>
+        <p>Espacio reservado para el próximo tema. Para publicarlo: copia <code>_plantilla.html</code>, escribe sus secciones y añade aquí su parada (mira «Cómo añadir un tema nuevo», al final de la página).</p>
+        <div class="tags"><span>próximamente</span></div>
+      </div>
+    </li>
+
+  </ol>
+</section>
+
+<section class="inner">
+  <h2><span class="num">DENTRO DE CADA TEMA</span>Lo que encuentran todos</h2>
+  <p>El estilo y el motor de navegación se comparten: por eso, al abrir cualquier tema, estas piezas ya están ahí.</p>
+
+  <div class="feats">
+    <div class="feat">
+      <h3>Índice y buscador</h3>
+      <p>Un índice lateral filtrable y un buscador global sobre todo el tema (atajo: la tecla <code>/</code>).</p>
+    </div>
+    <div class="feat">
+      <h3>Glosario A–Z</h3>
+      <p>Todos los términos en orden alfabético, filtrables, cada uno con la sección donde se explica.</p>
+    </div>
+    <div class="feat">
+      <h3>Herramientas interactivas</h3>
+      <p>Calculadoras y simuladores que corren en tu navegador, sin enviar nada a ningún lado.</p>
+    </div>
+    <div class="feat">
+      <h3>Cajas y autoevaluación</h3>
+      <p>Cajas de color para analogías, avisos y claves; y preguntas al cierre de cada sección.</p>
+    </div>
+  </div>
+</section>
+
+<section class="inner">
+  <details class="howto">
+    <summary>Cómo añadir un tema nuevo (para una persona o para una IA)</summary>
+    <div class="body">
+      <ol>
+        <li>Copia <a href="_plantilla.html">_plantilla.html</a> a un archivo nuevo, por ejemplo <code>tema03.html</code>.</li>
+        <li>Reemplaza los marcadores <code>@@NUM@@</code>, <code>@@TITULO@@</code>, <code>@@SUBTITULO@@</code> y <code>@@DESCRIPCION@@</code>, y escribe las secciones dentro de <code>&lt;main&gt;</code>.</li>
+        <li>Añade el enlace de esas secciones al índice lateral (<code>nav#toc</code>) de ese archivo.</li>
+        <li>Publica aquí su parada: copia un bloque <code>&lt;li class="stop"&gt;</code> de un tema publicado y cámbialo.</li>
+        <li>Actualiza el contador de la portada («N temas publicados · M en preparación»).</li>
+        <li>Las reglas completas de estilo y de mantenimiento están en <a href="../INSTRUCTIVO-IA.md">INSTRUCTIVO-IA.md</a>, en la raíz del repositorio.</li>
+      </ol>
+      <p>No hace falta tocar <code>_estilo.css</code> ni <code>_motor.js</code>: los comparten todos los temas.</p>
+    </div>
+  </details>
+</section>
+
+</main>
+</div>
+</body>
+</html>
