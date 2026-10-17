@@ -28,6 +28,18 @@
   }
 
   /* ============================================================
+     0.5 Tablas responsivas: en móvil hacen scroll horizontal propio
+     en vez de desbordar toda la página.
+     ============================================================ */
+  Array.prototype.forEach.call(document.querySelectorAll("main table"), function (t) {
+    if (t.parentNode.classList.contains("tbl-scroll")) return;
+    var wrap = document.createElement("div");
+    wrap.className = "tbl-scroll";
+    t.parentNode.insertBefore(wrap, t);
+    wrap.appendChild(t);
+  });
+
+  /* ============================================================
      1. Barra de progreso, botón "volver arriba" y sección activa
      ============================================================ */
   var prog = document.getElementById("prog");
