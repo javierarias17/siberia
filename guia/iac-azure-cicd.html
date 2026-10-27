@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Infraestructura como código y CI/CD en Azure - Biblioteca de estudio</title>
+<link rel="stylesheet" href="_estilo.css">
+</head>
+<body>
+<div id="prog"></div>
+<div id="wrap">
+
+<aside id="side">
+  <button id="sideClose" aria-label="Cerrar índice">✕</button>
+  <a class="backlink" href="index.html">Volver a la biblioteca</a>
+  <h1>Infraestructura como código y CI/CD en Azure</h1>
+  <p class="sub">Tema 03 - Bicep, Container Apps y GitHub Actions sin contraseñas</p>
+  <input id="docSearch" placeholder="Buscar en toda la guía..." autocomplete="off">
+  <div id="docResults"></div>
+  <input id="tocFilter" placeholder="Filtrar índice..." autocomplete="off">
+  <nav id="toc">
+    <div class="grp">Por qué Infraestructura como Código</div>
+    <a href="#intro">Cómo usar este tema</a>
+    <a href="#c1">1. Qué es Infraestructura como Código</a>
+    <a href="#c2">2. Bicep: qué es y cómo se relaciona con ARM</a>
+    <a href="#c3">3. Scopes en Bicep: suscripción vs resource group</a>
+    <div class="grp">La infraestructura real de ms-tercero</div>
+    <a href="#c4">4. Los recursos: ACR, Log Analytics, entorno y Container App</a>
+    <a href="#c5">5. Secretos: @secure() y por qué la clave nunca toca el repo</a>
+    <a href="#c6">6. Tres errores reales (y cómo se diagnosticaron)</a>
+    <div class="grp">Desplegar sin contraseñas</div>
+    <a href="#c7">7. Qué es CI/CD y por qué GitHub Actions</a>
+    <a href="#c8">8. OIDC y credenciales federadas</a>
+    <a href="#c9">9. El workflow de GitHub Actions, paso a paso</a>
+    <a href="#c10">10. Secrets vs Variables en GitHub</a>
+    <div class="grp">La saga de producción</div>
+    <a href="#c11">11. Tres gotchas más, con el pipeline corriendo</a>
+    <a href="#c12">12. El subject que cambia solo (IDs inmutables)</a>
+    <a href="#c13">13. Persiguiendo el bug de Azure Container Apps Express</a>
+    <a href="#c14">14. La salida: una región fuera del rollout de Express</a>
+    <a href="#c15">15. Efectos secundarios de borrar y recrear un resource group</a>
+    <a href="#c16">16. Spring Boot: el nombre casi correcto que no sirve</a>
+    <a href="#c17">17. Afinar con datos reales: confianza y un diagnóstico corregido</a>
+    <a href="#c18">18. Cómo ver los logs del contenedor</a>
+    <div class="grp">Apéndices</div>
+    <a href="#apa">A. Los comandos az cli, en orden</a>
+    <a href="#apb">B. El gotcha de Git Bash (MSYS_NO_PATHCONV)</a>
+    <div class="grp">Consulta</div>
+    <a href="#glosario">Glosario A–Z</a>
+    <a href="#herramientas">Herramientas interactivas</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<header class="cover inner">
+  <div class="kicker">Tema 03</div>
+  <h1>Infraestructura como código y CI/CD en Azure</h1>
+  <p>Cómo pasar de crear recursos a golpe de clic en el Azure Portal a describirlos en un archivo que se puede ejecutar en cualquier cuenta. <strong>Bicep</strong> para describir la infraestructura, <strong>Azure Container Apps</strong> para correr el contenedor, y <strong>GitHub Actions</strong> con autenticación federada (<strong>OIDC</strong>) para desplegar automáticamente sin guardar ni una sola contraseña. Todo este tema documenta un despliegue real: el backend <code>ms-tercero</code>, para la Universidad El Bosque.</p>
+  <p class="meta">18 secciones · 2 apéndices · glosario A–Z · 1 herramienta interactiva<br>Nivel: sin experiencia previa en Azure ni en Infraestructura como Código</p>
+</header>
+
+<section id="intro" class="inner">
+  <h2><span class="num">PRÓLOGO</span>Cómo usar este tema</h2>
+  <p>Este tema no es teoría abstracta de la nube: es la crónica de un despliegue real, con sus tres errores reales y cómo se resolvieron. La idea es que, la próxima vez que despliegues algo en Azure (en esta cuenta o en otra), reconozcas el patrón en lugar de empezar de cero.</p>
+  <p>El hilo tiene cuatro bloques:</p>
+  <table>
+    <thead><tr><th>Bloque</th><th>Secciones</th><th>Qué resuelve</th></tr></thead>
+    <tbody>
+      <tr><td>Por qué IaC</td><td><a href="#c1">1</a>–<a href="#c3">3</a></td><td>Qué es Infraestructura como Código, qué es Bicep, y cómo se organiza un despliegue en capas (suscripción → resource group).</td></tr>
+      <tr><td>La infraestructura real</td><td><a href="#c4">4</a>–<a href="#c6">6</a></td><td>Qué recursos se crearon, cómo viajan los secretos, y los tres errores reales que aparecieron al desplegar en una cuenta de Azure for Students.</td></tr>
+      <tr><td>CI/CD sin contraseñas</td><td><a href="#c7">7</a>–<a href="#c10">10</a></td><td>Qué es un pipeline de CI/CD, cómo GitHub se autentica en Azure sin guardar ningún secreto, y cómo queda el workflow completo.</td></tr>
+      <tr><td>La saga de producción</td><td><a href="#c11">11</a>–<a href="#c18">18</a></td><td>Lo que pasó después de que "ya funcionaba": un bug real de plataforma, una migración de región, y dos bugs de configuración que parecían de infraestructura pero eran del código.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Hasta ahora, "crear la infraestructura" era como armar un mueble siguiendo instrucciones verbales por teléfono: cada vez que lo repites, alguien puede entender mal un paso. IaC es cambiar eso por el manual en papel con cada tornillo numerado: el mismo manual, en cualquier casa, siempre arma el mismo mueble.</p>
+  </div>
+
+  <h3>Las convenciones visuales de este tema</h3>
+  <div class="box analogy"><span class="lbl">Analogía</span><p>Un ejemplo de la vida diaria que explica el concepto antes de la definición técnica.</p></div>
+  <div class="box real"><span class="lbl">Ejemplo real</span><p>Un dato, comando o resultado tomado literalmente del despliegue de <code>ms-tercero</code>.</p></div>
+  <div class="box warn"><span class="lbl">Ojo con esto</span><p>Un error de concepto frecuente, o algo que puede romperse si se pasa por alto.</p></div>
+  <div class="box danger"><span class="lbl">Trampa</span><p>Algo que parece correcto y sin embargo falla (los tres errores reales de la sección 6 viven aquí).</p></div>
+  <div class="box key"><span class="lbl">Idea clave</span><p>El resumen de un párrafo. Lo que hay que llevarse.</p></div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Los identificadores reales de la cuenta (el <em>client id</em> de la aplicación, el <em>tenant id</em>, el <em>subscription id</em>, el id del service principal) aparecen en este tema como <code>&lt;APP_ID&gt;</code>, <code>&lt;TENANT_ID&gt;</code>, etc. No es que sean secretos — con OIDC (sección 8) ninguno de los tres lo es — sino que son <strong>específicos de una cuenta</strong>: en otra cuenta de Azure serán otros valores distintos, y ese es justamente el punto de este tema: un comando reproducible, no un valor memorizado.</p>
+  </div>
+</section>
+
+<section id="c1" class="inner">
+  <h2><span class="num">SECCIÓN 1</span>Qué es Infraestructura como Código</h2>
+  <p>Antes de este tema, crear la infraestructura de <code>ms-tercero</code> en Azure habría significado entrar al Portal, hacer clic en "Crear recurso", rellenar formularios para el registro de contenedores, para el entorno de Container Apps, para la Container App… siete u ocho pantallas, en un orden concreto, con nombres que hay que teclear igual en cada pantalla. Eso es <strong>infraestructura manual</strong>: funciona, pero vive solo en la memoria de quien hizo los clics.</p>
+  <p><strong>Infraestructura como Código (IaC)</strong> es escribir esa misma infraestructura en un archivo de texto que una herramienta puede leer y ejecutar. El archivo describe el resultado final ("quiero un registro de contenedores llamado <code>acrmstercero</code>, en la región <code>westus2</code>, con SKU Basic"), no los pasos para llegar ahí. Eso se llama ser <strong>declarativo</strong>, en contraste con un script <strong>imperativo</strong> que diría "ejecuta este comando, luego este otro, luego este".</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Una receta de cocina imperativa dice "pon la olla al fuego, espera 5 minutos, añade la sal". Una receta declarativa diría simplemente "quiero una sopa con 2 % de sal, caliente". A la herramienta (el horno, en este caso Azure) le da igual el orden exacto de tus gestos: lo que te garantiza es el resultado final descrito.</p>
+  </div>
+
+  <p>La propiedad más importante de un buen archivo de IaC es la <strong>idempotencia</strong>: ejecutarlo dos veces seguidas no debe romper nada ni duplicar recursos. Si el recurso ya existe tal y como lo describiste, Azure no hace nada; si falta algo, lo crea; si algo cambió, lo actualiza. Por eso en este proyecto se pudo volver a ejecutar el mismo despliegue varias veces mientras se corregían los tres errores de la sección 6, sin tener que destruir nada a mano entre un intento y el siguiente.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>IaC no es "un script que crea cosas". Es una <strong>descripción del estado final</strong> que se puede volver a aplicar cuantas veces haga falta, y que se puede llevar, intacta, a otra cuenta de Azure. Esa portabilidad fue la razón concreta por la que se eligió IaC para <code>ms-tercero</code>: la necesidad de poder <strong>replicar esta misma infraestructura en otra cuenta de Azure</strong>.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué diferencia hay entre un script imperativo y un archivo declarativo de IaC?<br><em>El imperativo lista pasos a ejecutar en orden; el declarativo describe el resultado final que se quiere, y la herramienta decide cómo llegar ahí.</em></li>
+        <li>¿Por qué importa que un despliegue de IaC sea idempotente?<br><em>Porque permite volver a ejecutarlo tras corregir un error, sin tener que borrar a mano lo que ya se había creado correctamente.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c2" class="inner">
+  <h2><span class="num">SECCIÓN 2</span>Bicep: qué es y cómo se relaciona con ARM</h2>
+  <p>Azure lleva años aceptando descripciones declarativas de infraestructura en un formato llamado <strong>ARM template</strong> (Azure Resource Manager template): un archivo JSON, válido, pero verboso y difícil de leer a simple vista. <strong>Bicep</strong> es un lenguaje más simple que se escribe a mano y que, por debajo, <em>se compila a ese mismo JSON de ARM</em>. Azure nunca "entiende" Bicep directamente: entiende ARM, y Bicep es la capa cómoda encima.</p>
+
+  <pre><span class="c">// Esto, en Bicep...</span>
+resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+  name: acrName
+  location: location
+  sku: { name: 'Basic' }
+}</pre>
+
+  <p>...se traduce, al compilar, a decenas de líneas de JSON equivalente con la misma información. El comando para comprobar esa traducción sin desplegar nada es <code>az bicep build</code>: compila el archivo a un <code>.json</code> local y avisa de errores de sintaxis antes de gastar ni un segundo hablando con Azure.</p>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>En <code>ms-tercero</code> el archivo <code>infra/main.bicep</code> se validó así antes de cada intento de despliegue: <code>az bicep build --file main.bicep</code>. Encontrar un error de sintaxis en ese paso tarda segundos; encontrarlo después, a mitad de un despliegue real, puede tardar varios minutos (el tiempo que Azure tarda en crear los recursos anteriores antes de llegar al que falla).</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Un archivo <code>.bicep</code> no se "ejecuta" como un script: se <strong>despliega</strong> con <code>az deployment ... create</code> (apéndice A). La diferencia no es solo de vocabulario: un despliegue de Bicep calcula primero qué cambió respecto al estado actual de Azure, y solo toca eso.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Bicep reemplaza a ARM o se apoya en él?<br><em>Se apoya en él: Bicep se compila a un ARM template en JSON; Azure solo procesa ese JSON.</em></li>
+        <li>¿Para qué sirve <code>az bicep build</code> si de todas formas hay que desplegar con otro comando?<br><em>Para detectar errores de sintaxis en segundos, de forma local, sin esperar a que el despliegue real llegue al recurso con el error.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c3" class="inner">
+  <h2><span class="num">SECCIÓN 3</span>Scopes en Bicep: suscripción vs resource group</h2>
+  <p>Todo recurso de Azure vive dentro de un <strong>resource group</strong>: una carpeta lógica que agrupa recursos relacionados para administrarlos (y borrarlos) juntos. Pero el propio resource group tiene que crearse <em>en algún lado</em>: un nivel por encima, en la suscripción.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>La suscripción es el edificio completo; un resource group es un piso del edificio; los recursos (el registro de contenedores, la Container App…) son las oficinas dentro de ese piso. No puedes pedir "crea la oficina 301" sin que exista primero el piso 3.</p>
+  </div>
+
+  <p>Un archivo Bicep declara su <strong>scope</strong> (ámbito) al principio con <code>targetScope</code>. En <code>ms-tercero</code> se usaron dos archivos con dos scopes distintos, en capas:</p>
+
+  <pre><span class="c">// infra/main.bicep -- vive al nivel de la SUSCRIPCIÓN</span>
+targetScope = 'subscription'
+
+resource rg 'Microsoft.Resources/resourceGroups@2024-03-01' = {
+  name: resourceGroupName
+  location: location
+}
+
+<span class="c">// delega todo lo de dentro del resource group a otro archivo</span>
+module appResources 'modules/app-resources.bicep' = {
+  name: 'ms-tercero-app-resources'
+  scope: rg
+  params: { location: location, acrName: acrName, /* ... */ }
+}</pre>
+
+  <p>El archivo <code>modules/app-resources.bicep</code>, en cambio, no declara <code>targetScope</code>: por defecto su scope es <code>resourceGroup</code>, y recibe ese resource group desde afuera (<code>scope: rg</code>, arriba). Dentro de él viven el registro de contenedores, el espacio de Log Analytics, el entorno de Container Apps y la Container App (sección 4).</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Separar en dos archivos por scope no es estético: es lo que permite que <strong>un solo comando</strong>, apuntando a <code>main.bicep</code>, cree el resource group <em>y</em> todo lo que va dentro, en cualquier suscripción nueva, sin pasos manuales intermedios.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué <code>main.bicep</code> necesita <code>targetScope = 'subscription'</code> y el módulo no?<br><em>Porque crear el propio resource group es una operación de nivel suscripción; todo lo que va adentro (el módulo) ya opera dentro de ese resource group, que es su scope por defecto.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c4" class="inner">
+  <h2><span class="num">SECCIÓN 4</span>Los recursos reales: ACR, Log Analytics, entorno y Container App</h2>
+  <p>El módulo <code>app-resources.bicep</code> declara cuatro recursos, en este orden de dependencia:</p>
+
+  <table>
+    <thead><tr><th>Recurso</th><th>Tipo ARM</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td>Azure Container Registry (<code>acrmstercero</code>)</td><td><code>Microsoft.ContainerRegistry/registries</code></td><td>Guarda la imagen Docker del backend, versionada por etiqueta (ej. el SHA del commit).</td></tr>
+      <tr><td>Log Analytics workspace</td><td><code>Microsoft.OperationalInsights/workspaces</code></td><td>Recibe los logs de la aplicación. Container Apps lo exige: no hay entorno sin un destino para los logs.</td></tr>
+      <tr><td>Container Apps Environment (<code>cae-ms-tercero</code>)</td><td><code>Microsoft.App/managedEnvironments</code></td><td>La "red" compartida donde corren una o varias Container Apps; aquí vive la configuración de logs.</td></tr>
+      <tr><td>Container App (<code>ms-tercero-api</code>)</td><td><code>Microsoft.App/containerApps</code></td><td>El propio contenedor en ejecución: imagen, variables de entorno, puerto expuesto, reglas de escalado.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Azure Container Apps es un contenedor "sin servidor": igual que una función serverless, puede escalar a <strong>cero instancias</strong> cuando nadie lo usa (no cobra nada mientras duerme) y levantarse de nuevo cuando llega una petición. Es el punto medio entre "subir un jar a una máquina virtual que corre siempre" y "un clúster de Kubernetes completo" como AKS.</p>
+  </div>
+
+  <pre>resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+  name: containerAppName
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    managedEnvironmentId: containerAppsEnv.id
+    configuration: {
+      ingress: { external: true, targetPort: 8080, transport: 'auto' }
+    }
+    template: {
+      containers: [{
+        name: 'ms-tercero'
+        image: containerImage
+        resources: { cpu: json('0.5'), memory: '1.0Gi' }
+        env: [
+          { name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT', value: azureDocumentIntelligenceEndpoint }
+          <span class="c">// ...el resto de variables de configuración</span>
+        ]
+      }]
+      scale: { minReplicas: 0, maxReplicas: 1 }
+    }
+  }
+}</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>Esas variables de entorno (<code>AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT</code>, etc.) llegan a la aplicación Spring Boot sin que exista ningún <code>application.yml</code> dentro de la imagen. Spring Boot tiene un mecanismo llamado <em>relaxed binding</em>: una variable de entorno en mayúsculas con guiones bajos, como <code>AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT</code>, se mapea automáticamente a la propiedad <code>azure.document-intelligence.endpoint</code>. Es la pieza que conecta el Bicep (que define variables de entorno) con el código Java (que define propiedades de configuración), sin que ningún secreto quede escrito en un archivo dentro del repositorio ni de la imagen.</p>
+  </div>
+
+  <p>El <code>identity: { type: 'SystemAssigned' }</code> de la Container App crea una <strong>identidad administrada</strong>: una cuenta de servicio que Azure gestiona automáticamente (sin contraseña que rotar) y a la que se le pueden asignar permisos sobre otros recursos. En este proyecto se intentó usarla para autenticarse contra el registro de contenedores — y ahí apareció el tercer error real de la sección 6.</p>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué Container Apps exige un Log Analytics workspace aunque no se vaya a mirar nunca?<br><em>Porque el entorno (managedEnvironment) necesita un destino configurado para los logs de la aplicación; es un requisito estructural del recurso, no una opción.</em></li>
+        <li>¿Qué significa que la Container App pueda escalar a cero instancias?<br><em>Que cuando no hay peticiones, Azure apaga el contenedor por completo (y no se cobra por cómputo) hasta que llegue la siguiente petición.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c5" class="inner">
+  <h2><span class="num">SECCIÓN 5</span>Secretos: @secure() y por qué la clave nunca toca el repo</h2>
+  <p>La clave de la API de Azure Document Intelligence es un secreto real: con ella, cualquiera puede consumir la cuota del recurso. Un archivo de IaC que la tuviera escrita en texto plano, subido a GitHub, sería equivalente a pegarla en un chat — y de hecho eso fue justo lo que pasó más de una vez durante el desarrollo de este proyecto, antes de automatizarlo (una de las razones por las que conviene rotar esa clave después).</p>
+
+  <p>Bicep resuelve esto con el decorador <code>@secure()</code>: marca un parámetro como sensible, de forma que Azure nunca lo registra en los logs de despliegue ni lo expone en el historial de <code>az deployment</code>.</p>
+
+  <pre><span class="c">// infra/main.bicep</span>
+@secure()
+@description('API key del recurso de Azure AI Document Intelligence. Nunca se guarda en un archivo del repo: se pasa en el momento del despliegue.')
+param azureDocumentIntelligenceKey string</pre>
+
+  <p>Ese parámetro no vive en ningún archivo de parámetros versionado. El archivo que sí va al repositorio (<code>infra/main.parameters.example.json</code>) contiene solo los valores que no son secretos (nombres, región, ids de modelo); el archivo real con la clave (<code>infra/main.parameters.json</code>) está en <code>.gitignore</code> y se rellena solo en la máquina de quien despliega.</p>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Dentro de la propia Container App hay un segundo secreto que no es "de negocio" sino de infraestructura: la contraseña de administrador del registro de contenedores (sección 6.3). Se maneja igual, como un <code>secret</code> de la Container App, nunca como texto plano en una variable de entorno visible.</p>
+  </div>
+
+  <pre>secrets: [
+  { name: 'doc-intel-key', value: azureDocumentIntelligenceKey }
+  { name: 'acr-password', value: acr.listCredentials().passwords[0].value }
+]
+<span class="c">// las variables de entorno los referencian por nombre, no por valor:</span>
+env: [
+  { name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY', secretRef: 'doc-intel-key' }
+]</pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p><code>@secure()</code> protege el parámetro <em>durante el despliegue</em> (no queda en logs de Azure). Que el archivo con el valor real nunca se suba a Git es una regla distinta, aplicada con <code>.gitignore</code>. Hacen falta las dos: una sin la otra deja un hueco.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿<code>@secure()</code> impide que el valor quede escrito en un archivo del repositorio?<br><em>No. Solo evita que Azure lo registre en sus propios logs de despliegue. Que no quede en el repo depende de mantener el archivo de parámetros reales fuera de Git.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c6" class="inner">
+  <h2><span class="num">SECCIÓN 6</span>Tres errores reales (y cómo se diagnosticaron)</h2>
+  <p>El primer intento de desplegar <code>main.bicep</code> en una cuenta de "Azure for Students" no funcionó a la primera. Tres errores aparecieron, en orden, cada uno tapando al siguiente. Verlos en orden es más útil que verlos resueltos: cada uno enseña una forma distinta de leer un mensaje de error de Azure.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Código de error</th><th>Causa real</th><th>Cómo se arregló</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>RequestDisallowedByAzure</code></td><td>La suscripción tiene una <em>Azure Policy</em> de restricción de regiones que solo permite desplegar en <code>belgiumcentral</code>, <code>chilecentral</code>, <code>westus2</code>, <code>brazilsouth</code> y <code>canadacentral</code> — y el despliegue pedía <code>eastus2</code>.</td><td>Cambiar el parámetro <code>location</code> por defecto a <code>westus2</code>, tras confirmar la lista exacta con <code>az policy assignment list</code>.</td></tr>
+      <tr><td>2</td><td><code>InvalidResourceGroupLocation</code></td><td>El resource group <code>rg-ms-tercero</code> ya existía, creado a mano en un intento anterior (antes de pasar a IaC), y había quedado fijado en <code>eastus2</code>. Un resource group no puede "moverse" de región una vez creado.</td><td>Confirmar que estaba vacío (<code>az resource list</code>), borrarlo (<code>az group delete</code>) y esperar a que desapareciera (<code>az group exists</code> en bucle) antes de reintentar.</td></tr>
+      <tr><td>3</td><td><code>ExpressEnvironmentFeatureNotSupported</code></td><td>Las cuentas de estudiante crean, por defecto, un entorno de Container Apps de nivel "Express", que <strong>no soporta</strong> autenticar el pull de imágenes con identidad administrada (sección 4).</td><td>Activar <code>adminUserEnabled: true</code> en el ACR y autenticar la Container App con usuario/clave de administrador (<code>acr.listCredentials()</code>) en vez de con la identidad del sistema.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>El error 2 no lo causó el Bicep: lo causó un residuo de un intento manual <em>anterior a</em> adoptar IaC. Es la trampa clásica de mezclar infraestructura creada a mano con infraestructura declarada en código: el código asume que parte desde cero, y el resource group ya no estaba vacío conceptualmente (tenía una región "congelada").</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El comando que reveló la causa del error 1 fue <code>az policy assignment list</code>, que mostró una asignación de la definición <code>sys.regionrestriction</code> con la lista exacta de regiones permitidas. Sin ese comando, el error <code>RequestDisallowedByAzure</code> por sí solo no dice <em>cuáles</em> regiones sí están permitidas — solo que la elegida no lo está.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>El nivel "Express" de Container Apps Environment no es una limitación de Bicep ni de <code>ms-tercero</code>: es una limitación de las suscripciones gratuitas o de estudiante. En una suscripción de pago, con un entorno "estándar" (<em>Workload Profiles</em>), el pull por identidad administrada sí funciona, y el ACR podría quedar sin usuario de administrador habilitado (más seguro).</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué el error 2 (<code>InvalidResourceGroupLocation</code>) no se podía arreglar solo editando el Bicep?<br><em>Porque el recurso ya existía con una región fija desde antes; había que borrarlo primero y dejar que el despliegue lo volviera a crear en la región correcta.</em></li>
+        <li>¿Qué pregunta responde <code>az policy assignment list</code> que el mensaje de error por sí solo no responde?<br><em>Cuáles son las regiones concretas que SÍ están permitidas, no solo que la elegida no lo está.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c7" class="inner">
+  <h2><span class="num">SECCIÓN 7</span>Qué es CI/CD y por qué GitHub Actions</h2>
+  <p><strong>CI/CD</strong> son dos ideas relacionadas: <strong>Integración Continua</strong> (compilar y probar el código automáticamente cada vez que alguien sube un cambio) y <strong>Entrega/Despliegue Continuo</strong> (llevar ese cambio, ya construido, hasta donde corre en producción). Antes de este tema, desplegar un cambio en <code>ms-tercero</code> significaba compilar el jar a mano, construir la imagen Docker a mano, subirla al registro a mano y actualizar la Container App a mano: cuatro pasos manuales, cada uno con su propia oportunidad de olvido.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Es la diferencia entre revisar tú mismo cada factura antes de pagarla, y tener un sistema que las revisa automáticamente apenas llegan. El trabajo (compilar, construir la imagen, desplegar) es siempre el mismo; lo que cambia es quién lo dispara y cuándo.</p>
+  </div>
+
+  <p><strong>GitHub Actions</strong> es el motor de automatización integrado en GitHub: un archivo YAML dentro de <code>.github/workflows/</code> describe una serie de pasos (un <em>workflow</em>) que se ejecutan en una máquina temporal de GitHub cada vez que ocurre un evento — en este caso, cada <code>push</code> a la rama <code>main</code>.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>El pipeline de <code>ms-tercero</code> no reemplaza al Bicep de las secciones 1 a 6: los resuelve problemas distintos. Bicep responde "¿qué infraestructura existe?" (se ejecuta rara vez, cuando cambia la forma de la infraestructura). GitHub Actions responde "¿qué versión del código corre ahí?" (se ejecuta en cada cambio de código, mucho más a menudo).</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué parte resuelve Bicep y qué parte resuelve GitHub Actions en este proyecto?<br><em>Bicep crea y describe la infraestructura (qué recursos existen); GitHub Actions construye y despliega el código (qué versión corre dentro de esa infraestructura ya existente).</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c8" class="inner">
+  <h2><span class="num">SECCIÓN 8</span>OIDC y credenciales federadas</h2>
+  <p>Para que GitHub Actions pueda ejecutar comandos <code>az</code> contra una cuenta de Azure, necesita autenticarse. La forma clásica sería crear un <em>service principal</em> con una contraseña (un <em>client secret</em>) y guardar esa contraseña como un secreto de GitHub. Funciona, pero esa contraseña vive para siempre hasta que alguien la rota a mano, y si se filtra, da acceso completo hasta que alguien se dé cuenta.</p>
+
+  <p>La alternativa usada en <code>ms-tercero</code> es <strong>OIDC</strong> (OpenID Connect) con una <strong>credencial federada</strong>: GitHub, en el momento exacto de ejecutar el workflow, le pide a Azure un token de identidad de corta duración y Azure lo acepta <em>sin que exista ninguna contraseña almacenada en ningún lado</em>. Azure confía en ese token porque, de antemano, se le dijo explícitamente de qué repositorio y de qué rama debía aceptarlo.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Una contraseña guardada es como darle a alguien una llave física que puede copiar, perder o que alguien le puede robar. Una credencial federada es más parecido a un portero que reconoce la cara de la persona cada vez que llega: no hay ninguna llave que robar, el "acceso" se verifica en el momento, cada vez, y solo para quien coincide con la descripción exacta que se dejó por escrito.</p>
+  </div>
+
+  <p>Montar esto llevó cuatro pasos, todos ejecutados con <code>az cli</code> (el detalle completo de cada comando está en el apéndice A):</p>
+  <ol>
+    <li><strong>App Registration</strong>: crear una identidad en Microsoft Entra ID que representa "el pipeline de GitHub Actions de este proyecto" (<code>az ad app create</code>). Devuelve un <code>appId</code> — el <code>&lt;APP_ID&gt;</code> de este tema.</li>
+    <li><strong>Service Principal</strong>: la "versión usable" de esa identidad dentro de esta suscripción en concreto (<code>az ad sp create</code>). Una App Registration puede tener un service principal por cada suscripción donde se use.</li>
+    <li><strong>Credencial federada</strong>: la regla de confianza explícita. Le dice a Azure exactamente qué debe venir en el token de GitHub para aceptarlo (<code>az ad app federated-credential create</code>): qué <em>issuer</em> (quién firma el token), qué <em>subject</em> (de qué repositorio y rama) y qué <em>audience</em>.</li>
+    <li><strong>Role assignment (RBAC)</strong>: darle permisos a esa identidad sobre el resource group <code>rg-ms-tercero</code> (<code>az role assignment create --role Contributor</code>). Sin este paso, la identidad se autentica correctamente pero no puede hacer nada: autenticación y autorización son cosas distintas.</li>
+  </ol>
+
+  <pre><span class="c">// la credencial federada de ms-tercero, con los valores reales de este proyecto</span>
+{
+  "name": "github-actions-main",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:&lt;tu-usuario&gt;/&lt;tu-repo&gt;:ref:refs/heads/main",
+  "audiences": ["api://AzureADTokenExchange"]
+}</pre>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>El campo <code>subject</code> es literal y estricto: <code>repo:org/repo:ref:refs/heads/main</code> solo acepta tokens que vengan de un <code>push</code> a la rama <code>main</code> de ese repositorio exacto. Un <code>pull_request</code>, u otra rama, u otro repositorio, generan un <code>subject</code> distinto y Azure rechazaría el token. Es, literalmente, el "quién puede entrar" de todo el esquema.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Autenticación (quién eres) y autorización (qué puedes hacer) son dos pasos separados. OIDC + credencial federada resuelve solo la primera, sin contraseña. El <code>role assignment</code> del paso 4 resuelve la segunda, y sigue siendo necesario exactamente igual que con cualquier otro método de autenticación.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué problema de seguridad evita OIDC frente a guardar un <em>client secret</em> como secreto de GitHub?<br><em>Que no existe ninguna contraseña de larga duración que se pueda filtrar o quedar obsoleta sin rotar; el token que usa cada ejecución es de corta duración y se emite en el momento.</em></li>
+        <li>Si la credencial federada está bien creada pero nunca se hizo el <code>role assignment</code>, ¿qué pasa al ejecutar el workflow?<br><em>El login en Azure (la autenticación) funciona, pero cualquier comando que intente crear o modificar recursos falla por falta de permisos (autorización).</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c9" class="inner">
+  <h2><span class="num">SECCIÓN 9</span>El workflow de GitHub Actions, paso a paso</h2>
+  <p>El archivo <code>.github/workflows/deploy-container-apps.yml</code> de <code>ms-tercero</code> tiene siete pasos. Vale la pena leerlo de arriba a abajo una vez, con calma. (La versión que ves aquí ya no es la primera que se escribió: el paso 6 original usaba <code>az acr build</code> en vez de Docker local — por qué cambió está en la <a href="#c11">sección 11</a>.)</p>
+
+  <pre>on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write   <span class="c"># necesario para pedir el token OIDC</span>
+  contents: read
+
+concurrency:
+  group: deploy-container-apps
+  cancel-in-progress: true</pre>
+
+  <p><code>on.push.branches: [main]</code> es el disparador normal: cualquier <code>push</code> a <code>main</code> lanza el workflow. <code>workflow_dispatch</code> añade un botón "Run workflow" manual en la pestaña Actions de GitHub, útil para volver a desplegar sin necesidad de un commit nuevo. <code>permissions.id-token: write</code> es el permiso que habilita, específicamente, pedir el token OIDC de la sección 8 — sin esta línea, <code>azure/login</code> fallaría aunque todo lo demás esté bien configurado. <code>concurrency</code> evita que dos despliegues se pisen si se hacen dos <code>push</code> muy seguidos: el segundo cancela al primero en vez de correr en paralelo contra la misma Container App.</p>
+
+  <table>
+    <thead><tr><th>Paso</th><th>Qué hace</th><th>Por qué existe</th></tr></thead>
+    <tbody>
+      <tr><td>1. <code>actions/checkout</code></td><td>Descarga el código del repositorio en la máquina temporal de GitHub.</td><td>Sin esto no hay nada que compilar.</td></tr>
+      <tr><td>2. <code>actions/setup-java</code></td><td>Instala el JDK 21 (Temurin).</td><td>Necesario para que Gradle pueda compilar el backend.</td></tr>
+      <tr><td>3. <code>./gradlew bootJar</code></td><td>Compila el jar ejecutable del módulo <code>app-service</code>.</td><td>El <code>Dockerfile</code> solo empaqueta un jar ya construido; no compila Java dentro de la imagen.</td></tr>
+      <tr><td>4. <code>azure/login@v2</code></td><td>Pide el token OIDC y abre sesión en Azure (sección 8).</td><td>Los pasos siguientes son comandos <code>az</code> que necesitan una sesión activa.</td></tr>
+      <tr><td>5. <code>az acr login</code></td><td>Autentica Docker contra el registro, usando la misma sesión de Azure del paso 4.</td><td>El paso 6 necesita poder hacer <code>docker push</code> sin pedir usuario/clave a mano.</td></tr>
+      <tr><td>6. <code>docker build</code> + <code>docker push</code></td><td>Construye la imagen <strong>en la máquina de GitHub Actions</strong> (el runner ya trae Docker instalado) y la sube al registro.</td><td>Reemplaza a <code>az acr build</code> (ACR Tasks), que esta suscripción no permite — ver <a href="#c11">sección 11</a>.</td></tr>
+      <tr><td>7. <code>az containerapp update</code></td><td>Le dice a la Container App que use la imagen recién construida.</td><td>Es el paso que de verdad "despliega": sin él, la imagen nueva existiría en el registro pero nada la estaría usando.</td></tr>
+    </tbody>
+  </table>
+
+  <pre>- name: Login en el registro de contenedores
+  run: az acr login --name "$AZURE_CONTAINER_REGISTRY"
+
+- name: Build y push de la imagen (Docker local; ACR Tasks no está permitido en esta suscripción)
+  run: |
+    docker build \
+      -t "$AZURE_CONTAINER_REGISTRY.azurecr.io/$IMAGE_NAME:${{ github.sha }}" \
+      -t "$AZURE_CONTAINER_REGISTRY.azurecr.io/$IMAGE_NAME:latest" \
+      .
+    docker push "$AZURE_CONTAINER_REGISTRY.azurecr.io/$IMAGE_NAME:${{ github.sha }}"
+    docker push "$AZURE_CONTAINER_REGISTRY.azurecr.io/$IMAGE_NAME:latest"</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>La imagen se etiqueta dos veces: con <code>${{ github.sha }}</code> (el hash exacto del commit, único para siempre) y con <code>latest</code>. El paso 7 despliega siempre la etiqueta del <code>sha</code>, nunca <code>latest</code> — así, en todo momento, se puede mirar la Container App y saber <em>exactamente</em> qué commit está corriendo, algo que con <code>latest</code> sería imposible de rastrear.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p><code>az acr login</code> funciona porque reutiliza la sesión que <code>azure/login@v2</code> ya abrió en el paso 4: no hace falta ningún usuario/clave nuevo. Por debajo, pide un token de corta duración y configura el <em>credential helper</em> de Docker para que lo use automáticamente en el siguiente <code>docker push</code>.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué el paso de despliegue usa la etiqueta <code>${{ github.sha }}</code> y no <code>latest</code>?<br><em>Porque así siempre se sabe con certeza qué commit exacto está corriendo en producción; "latest" es un alias que cambia con cada build y no identifica una versión concreta.</em></li>
+        <li>¿Qué pasaría si se quitara la línea <code>permissions: id-token: write</code>?<br><em>El paso de login en Azure fallaría: GitHub no entregaría el token OIDC necesario para autenticarse, aunque la credencial federada esté bien configurada del lado de Azure.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c10" class="inner">
+  <h2><span class="num">SECCIÓN 10</span>Secrets vs Variables en GitHub</h2>
+  <p>GitHub separa la configuración de un workflow en dos cajones: <strong>Secrets</strong> (valores ocultos, que ni siquiera se pueden volver a leer una vez guardados, solo sobrescribir) y <strong>Variables</strong> (valores visibles, pensados para configuración que no es sensible). Ambos se usan en <code>ms-tercero</code>, y la frontera entre uno y otro es más una convención de buen criterio que una regla técnica estricta.</p>
+
+  <table>
+    <thead><tr><th>Cajón</th><th>Valores de ms-tercero</th><th>Por qué ahí</th></tr></thead>
+    <tbody>
+      <tr><td>Secrets</td><td><code>AZURE_CLIENT_ID</code>, <code>AZURE_TENANT_ID</code>, <code>AZURE_SUBSCRIPTION_ID</code></td><td>Identifican una cuenta de Azure concreta. Con OIDC ninguno es, técnicamente, una contraseña — pero no hay razón para exponerlos en un log si no hace falta, así que se tratan con la misma disciplina que un secreto real.</td></tr>
+      <tr><td>Variables</td><td><code>AZURE_RESOURCE_GROUP</code>, <code>AZURE_CONTAINER_REGISTRY</code>, <code>CONTAINER_APP_NAME</code></td><td>Son nombres de recursos, no credenciales. Que aparezcan en los logs de ejecución del workflow no revela nada explotable.</td></tr>
+    </tbody>
+  </table>
+
+  <pre>env:
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+  AZURE_CONTAINER_REGISTRY: ${{ vars.AZURE_CONTAINER_REGISTRY }}
+  CONTAINER_APP_NAME: ${{ vars.CONTAINER_APP_NAME }}
+
+<span class="c"># más abajo, en el paso de login:</span>
+- uses: azure/login@v2
+  with:
+    client-id: ${{ secrets.AZURE_CLIENT_ID }}
+    tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+    subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}</pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>La sintaxis <code>${{ secrets.X }}</code> y <code>${{ vars.X }}</code> en el YAML es lo único que cambia entre un cajón y el otro: para el workflow, ambos son simplemente texto disponible en tiempo de ejecución. La diferencia real está en que GitHub oculta el valor de un <code>secret</code> en la interfaz y en los logs (lo muestra como <code>***</code>), y no lo hace con una <code>variable</code>.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué <code>AZURE_CLIENT_ID</code> va como secret si con OIDC no es, técnicamente, una contraseña?<br><em>Porque identifica de forma única la cuenta de Azure y la aplicación usada para el despliegue; aunque no sea explotable por sí solo como una contraseña, no hay ninguna necesidad de que aparezca en texto plano en los logs.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c11" class="inner">
+  <h2><span class="num">SECCIÓN 11</span>Tres gotchas más, ya con el pipeline corriendo</h2>
+  <p>Tener el workflow escrito y el permiso de Azure bien configurado no fue suficiente: los tres primeros intentos de ejecución fallaron, cada uno por una causa distinta y ninguna relacionada con Bicep ni con la infraestructura en sí.</p>
+
+  <table>
+    <thead><tr><th>#</th><th>Dónde falló</th><th>Causa real</th><th>Cómo se arregló</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Paso "Compilar"</td><td><code>./gradlew: Permission denied</code> (exit code 126). El archivo <code>gradlew</code> se registró en git sin el bit de ejecución, algo frecuente cuando el repositorio se trabaja desde Windows.</td><td><code>git update-index --chmod=+x gradlew</code>, luego commit y push. Corrige cómo git <em>registra</em> el archivo, no el archivo en sí.</td></tr>
+      <tr><td>2</td><td>Paso "Login en Azure"</td><td><code>AADSTS700213: No matching federated identity record found</code>. El <em>subject</em> que GitHub realmente envía no era <code>repo:usuario/repo:ref:...</code> sino <code>repo:usuario@ID/repo@ID:ref:...</code> (sección 12.1 de abajo explica por qué).</td><td>Actualizar la credencial federada con el <em>subject</em> exacto que aparece en el propio mensaje de error de Azure.</td></tr>
+      <tr><td>3</td><td>Paso "Build y push"</td><td><code>TasksOperationsNotAllowed</code>. ACR Tasks (lo que hace <code>az acr build</code>: construir la imagen <em>dentro</em> de Azure) no está permitido en esta suscripción de Azure for Students.</td><td>Cambiar el paso a <code>az acr login</code> + <code>docker build</code> + <code>docker push</code>, construyendo la imagen en la propia máquina de GitHub Actions (sección 9).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Ninguno de estos tres errores estaba en el Bicep ni en el YAML original: los tres son restricciones específicas de <em>esta</em> cuenta (permisos de archivo al clonar en Windows, una protección de seguridad reciente de GitHub, una limitación de la suscripción gratuita). Un repositorio clonado por otra persona, en otra cuenta, puede no toparse con ninguno — o toparse con otros distintos.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué <code>git update-index --chmod=+x gradlew</code> arregla el error 1 sin tocar el contenido del archivo?<br><em>Porque git guarda el permiso de ejecución como parte de los metadatos del archivo en el índice, separado de su contenido; ese comando corrige solo ese metadato.</em></li>
+        <li>¿Qué tienen en común los tres errores de esta sección?<br><em>Los tres son restricciones específicas de la cuenta o del entorno (Windows, GitHub, la suscripción), no errores de lógica en el Bicep ni en el workflow.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c12" class="inner">
+  <h2><span class="num">SECCIÓN 12</span>El subject que cambia solo: IDs inmutables en el token de GitHub</h2>
+  <p>El error 2 de la sección anterior merece su propio espacio porque la causa es poco intuitiva. La credencial federada (<a href="#c8">sección 8</a>) se configuró con <code>repo:usuario/repo:ref:refs/heads/main</code> — el formato que la documentación de GitHub muestra como ejemplo estándar. Y aun así, Azure dijo que no coincidía con nada.</p>
+
+  <p>El propio mensaje de error de Azure incluye el <em>subject</em> real que GitHub envió, y no era el esperado:</p>
+
+  <pre><span class="c">// esperado:</span>
+repo:usuario/repo:ref:refs/heads/main
+
+<span class="c">// lo que realmente llegó:</span>
+repo:usuario@33511988/repo@1432830707:ref:refs/heads/main</pre>
+
+  <p>GitHub agrega, junto al nombre, el <strong>ID inmutable</strong> (un número que nunca cambia) tanto de la cuenta como del repositorio, en formato <code>login@id</code>. Es una protección de seguridad: si alguien pudiera renombrar su propia cuenta u otro repositorio para que coincida <em>por nombre</em> con uno legítimo, podría fabricar tokens válidos para ese nombre. Incluir el ID inmutable hace que ese ataque no funcione, porque el ID no cambia aunque el nombre sí.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Es la diferencia entre identificar a alguien por su apodo (que cualquiera podría empezar a usar) y por su número de cédula (que es suyo, sin importar cómo lo llamen). GitHub dejó de confiar solo en el "apodo" (nombre de usuario/repo) y empezó a exigir también el "número de cédula" (el ID).</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El arreglo fue literal: copiar el <em>subject</em> exacto del mensaje de error de Azure y actualizar la credencial federada con <code>az ad app federated-credential update</code>, usando ese valor tal cual en vez de intentar adivinar o reconstruir el formato <code>login@id</code> a mano.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>No todos los repositorios muestran este formato — depende de condiciones del lado de GitHub (como si el repositorio o la cuenta cambiaron de nombre en algún momento). Si tu credencial federada con el formato simple <code>repo:usuario/repo:...</code> deja de funcionar de un día para otro sin que tú hayas tocado nada, este es el primer sospechoso.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué problema de seguridad previene que GitHub incluya el ID inmutable en el subject?<br><em>Que alguien renombre una cuenta o repositorio para que coincida por nombre con uno legítimo y así obtenga tokens válidos para ese nombre; el ID no se puede falsificar ni reutilizar de esa forma.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c13" class="inner">
+  <h2><span class="num">SECCIÓN 13</span>Persiguiendo un bug real: Azure Container Apps "Express"</h2>
+  <p>Con el pipeline ya compilando, autenticándose y subiendo la imagen, el último paso (desplegar en Container Apps) seguía fallando — pero esta vez el problema no tenía una solución de una línea. Vale la pena seguir el hilo completo de esta investigación porque enseña <em>cómo</em> diagnosticar algo cuando ni la documentación ni el sentido común alcanzan.</p>
+
+  <p>El entorno de Container Apps de esta cuenta resultó estar en un nivel llamado <strong>"Express"</strong>: una variante lanzada muy recientemente (la documentación oficial está fechada apenas semanas antes de este despliegue), pensada para desplegar más rápido con menos configuración. El primer síntoma ya apareció en la <a href="#c6">sección 6</a> (identidad administrada no soportada). Pero había más:</p>
+
+  <table>
+    <thead><tr><th>Intento</th><th>Qué se probó</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>--revision-suffix</code> para forzar una revisión nueva</td><td><code>ExpressEnvironmentFeatureNotSupported</code>: "Revision Suffix" tampoco está soportado en Express.</td></tr>
+      <tr><td>2</td><td>Credenciales de administrador del ACR (usuario/clave), exactamente como dice la documentación de Express que debe funcionar</td><td><code>BuildFailed: Authentication failed when pulling container image</code>, a pesar de que las credenciales eran correctas.</td></tr>
+      <tr><td>3</td><td>Probar las mismas credenciales directo contra el registro, por fuera de Container Apps (<code>curl</code> con autenticación básica)</td><td><code>200 OK</code>. El registro las acepta perfectamente.</td></tr>
+      <tr><td>4</td><td>Un token OAuth de ACR (<code>az acr login --expose-token</code>) en vez de usuario/clave</td><td>El mismo error de autenticación. Dos mecanismos de autenticación distintos, dos fallos idénticos.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>La documentación oficial de Express, leída con cuidado, dice explícitamente que las imágenes privadas autenticadas con usuario/contraseña <strong>sí están soportadas</strong>. Y aun así, no funcionaban. Cuando una suposición razonable (confiar en la documentación) choca repetidamente con la realidad, y ya se descartaron los errores propios (credenciales verificadas por fuera, dos veces), la conclusión más honesta es: esto es un bug de la plataforma, no un error de configuración.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>El método que permitió llegar a esa conclusión fue <strong>aislar variables una por una</strong>: probar las credenciales por fuera de Container Apps (para separar "¿el registro las acepta?" de "¿Container Apps las usa bien?"), y probar un mecanismo de autenticación completamente distinto (para separar "¿es esta credencial?" de "¿es cualquier credencial?"). Cuando dos mecanismos distintos fallan igual, el problema deja de estar en la credencial.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué probar las credenciales directamente contra el registro (por fuera de Container Apps) fue un paso útil, aunque pareciera un rodeo?<br><em>Porque aísla si el problema está en la credencial misma o en cómo Container Apps la usa internamente; si el registro las acepta pero Container Apps no, el problema está en la plataforma, no en el dato.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c14" class="inner">
+  <h2><span class="num">SECCIÓN 14</span>La salida: una región fuera del rollout de Express</h2>
+  <p>Si Express es un nivel que Azure activa automáticamente para ciertas cuentas, y no hay un interruptor documentado para desactivarlo a mano, la pregunta cambia: ¿hay alguna combinación de condiciones donde Azure <em>no pueda</em> activarlo?</p>
+
+  <p>La respuesta estaba cruzando dos listas que ya existían, por separado, en este proyecto:</p>
+  <ul>
+    <li>Las <strong>5 regiones permitidas</strong> por la política de la suscripción (<a href="#c6">sección 6</a>): <code>belgiumcentral</code>, <code>chilecentral</code>, <code>westus2</code>, <code>brazilsouth</code>, <code>canadacentral</code>.</li>
+    <li>Las <strong>regiones donde Express existe</strong>, publicadas en su documentación oficial — una lista larga, pero que <strong>no incluye <code>belgiumcentral</code></strong>.</li>
+  </ul>
+
+  <p>De las 5 regiones permitidas, <code>belgiumcentral</code> es la única que queda fuera del alcance de Express. Si Express no está disponible ahí, un entorno de Container Apps creado en esa región no puede terminar siendo "Express" — tiene que ser el nivel estándar.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Es como buscar un hotel que no tenga una política molesta (por ejemplo, "no se admiten mascotas") cruzando la lista de hoteles donde puedes alojarte con la lista de hoteles que sí tienen esa política: el que queda en la primera lista y no en la segunda es la respuesta, sin tener que llamar a preguntar.</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El cambio fue, literalmente, una línea: el valor por defecto de <code>location</code> en <code>main.bicep</code> pasó de <code>westus2</code> a <code>belgiumcentral</code>. Todo lo demás del Bicep (sección 1 a 10) se mantuvo exactamente igual — la hipótesis solo necesitaba probarse con un redeploy completo.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Esta es la razón concreta, del mundo real, por la que <a href="#c1">IaC es idempotente y portable</a> (sección 1): cambiar de región no significó reconstruir el proyecto desde cero, sino cambiar un parámetro y volver a ejecutar el mismo comando.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Cómo se identificó <code>belgiumcentral</code> como la región a probar, sin que existiera documentación que lo dijera directamente?<br><em>Cruzando dos listas ya conocidas: las regiones permitidas por la política de la suscripción y las regiones donde Express está disponible; la única que aparece en la primera y no en la segunda era la candidata.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c15" class="inner">
+  <h2><span class="num">SECCIÓN 15</span>Efectos secundarios de borrar y recrear un resource group</h2>
+  <p>Migrar de región significó borrar el resource group en <code>westus2</code> y volver a desplegarlo en <code>belgiumcentral</code> con el mismo nombre (un resource group no puede simplemente "mudarse" de región). Ese borrado trajo dos sorpresas que no eran obvias de antemano.</p>
+
+  <div class="box danger"><span class="lbl">Trampa 1 · El permiso desaparece con el resource group</span>
+    <p>El <code>role assignment</code> de GitHub Actions (<a href="#c8">sección 8</a>, paso 4) estaba <em>scoped</em> al resource group viejo. Al borrar el resource group, Azure borra también cualquier asignación de permisos que apuntara a él — tiene sentido (el scope ya no existe), pero significa que recrear el resource group con el mismo nombre <strong>no</strong> restaura el permiso: hay que volver a correr <code>az role assignment create</code>. El síntoma fue un login de GitHub Actions que de repente decía <code>No subscriptions found for ***</code>, sin ningún cambio aparente de ese lado.</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa 2 · El registro de contenedores vuelve a estar vacío</span>
+    <p>El ACR (<a href="#c4">sección 4</a>) también se recreó desde cero — con el mismo nombre, pero <strong>sin ninguna de las imágenes</strong> que tenía antes. Un intento de desplegar una etiqueta que existía en el registro viejo falló con <code>MANIFEST_UNKNOWN: manifest ... is not found</code>: la etiqueta, simplemente, nunca había existido en el registro nuevo.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Borrar un resource group no es "pausar" la infraestructura: es destruirla por completo, incluidos los datos (imágenes del ACR) y las relaciones con recursos de fuera del resource group (el <code>role assignment</code>, que vive a nivel de identidad, no dentro del grupo). Recrear con el mismo nombre da una infraestructura <em>con la misma forma</em>, no la misma infraestructura.</p>
+  </div>
+
+  <p>La solución a la trampa 2 no fue técnica, sino de paciencia: dejar que el pipeline de CI/CD (secciones 9 y 11) construyera y subiera una imagen real al registro nuevo, en vez de intentar referenciar manualmente una etiqueta que ya no existía en ningún lado.</p>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué el <code>role assignment</code> no sobrevive a que se borre y recree el resource group con el mismo nombre?<br><em>Porque la asignación apunta a un scope (el ID interno del resource group), no a su nombre; al borrarlo, Azure borra las asignaciones scoped a él, y el resource group nuevo tiene un ID distinto aunque el nombre coincida.</em></li>
+        <li>¿Por qué una etiqueta de imagen que funcionaba en <code>westus2</code> dejó de existir en <code>belgiumcentral</code>?<br><em>Porque el ACR es un recurso con datos propios (las imágenes); recrearlo en otra región no copia su contenido, crea un registro nuevo y vacío con el mismo nombre.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c16" class="inner">
+  <h2><span class="num">SECCIÓN 16</span>Spring Boot en el contenedor: el nombre casi correcto que no sirve</h2>
+  <p>Con el backend ya corriendo en <code>belgiumcentral</code>, el frontend empezó a recibir <code>401 Unauthorized</code> al llamar a Azure Document Intelligence — a pesar de que la clave configurada era la correcta, verificada probándola directo contra la API con <code>curl</code>.</p>
+
+  <p>La causa estaba en cómo Spring Boot lee variables de entorno cuando <strong>no existe ningún <code>application.yml</code></strong> dentro de la imagen (que es justo el caso en este contenedor: toda la configuración llega por variables de entorno del Bicep, sección 4). Spring Boot tiene un mecanismo llamado <em>relaxed binding</em>: convierte el nombre de una variable de entorno a una propiedad de configuración siguiendo una regla de conversión exacta — y si el nombre no sigue esa regla al pie de la letra, la propiedad simplemente queda vacía, sin ningún error ni advertencia.</p>
+
+  <table>
+    <thead><tr><th>Propiedad Java (campo)</th><th>Variable de entorno que Spring espera</th><th>Variable que tenía el Bicep</th></tr></thead>
+    <tbody>
+      <tr><td><code>azure.document-intelligence.api-key</code> (campo <code>apiKey</code>)</td><td><code>AZURE_DOCUMENT_INTELLIGENCE_API_KEY</code></td><td><code>AZURE_DOCUMENT_INTELLIGENCE_KEY</code> — sin <code>API</code></td></tr>
+      <tr><td><code>azure.document-intelligence.models.cedula-model-id</code> (campo <code>cedulaModelId</code> dentro de un objeto anidado <code>models</code>)</td><td><code>AZURE_DOCUMENT_INTELLIGENCE_MODELS_CEDULA_MODEL_ID</code></td><td><code>AZURE_DOCUMENT_INTELLIGENCE_CEDULA_MODEL_ID</code> — sin <code>MODELS</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Es como una casilla de correo con un código postal exacto: una carta a "casi" la dirección correcta no rebota con un aviso de error, simplemente nunca llega. <code>AZURE_DOCUMENT_INTELLIGENCE_KEY</code> no es "una forma válida, pero distinta" de nombrar la clave — para Spring Boot, sencillamente no es el nombre de ninguna propiedad conocida, así que la ignora en silencio.</p>
+  </div>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>Este bug no apareció en ninguna prueba local anterior, porque en local sí existía un <code>application.yml</code> con una línea explícita como <code>api-key: ${AZURE_DOCUMENT_INTELLIGENCE_KEY:}</code> — ahí el nombre de la variable de entorno lo elige quien escribe el yml, no una convención automática. El <em>relaxed binding</em> solo entra en juego cuando no hay yml de por medio, que es exactamente la situación del contenedor en producción. Mismo nombre de variable, dos comportamientos distintos según el entorno.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>La regla práctica de <em>relaxed binding</em> para variables de entorno: cada punto y cada guion de la propiedad (<code>azure.document-intelligence.models.cedula-model-id</code>) se convierte en un guion bajo, todo en mayúsculas. Si hay un nivel de anidamiento en el Java (un objeto dentro de otro, como <code>models</code>), ese nivel <strong>tiene</strong> que aparecer en el nombre de la variable — no es opcional ni se puede acortar.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué <code>AZURE_DOCUMENT_INTELLIGENCE_KEY</code> no genera ningún error, solo una propiedad vacía?<br><em>Porque relaxed binding busca una coincidencia exacta con alguna propiedad conocida; si no la encuentra, simplemente no asigna nada — no hay validación que avise de nombres "parecidos pero incorrectos".</em></li>
+        <li>¿Por qué este bug no se detectó en las pruebas locales?<br><em>Porque localmente existía un application.yml que mapeaba explícitamente esa variable de entorno a la propiedad, con el nombre que quien escribió el yml decidió usar — el relaxed binding automático solo se activa cuando no hay yml.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c17" class="inner">
+  <h2><span class="num">SECCIÓN 17</span>Afinar con datos reales: confianza, logs, y un diagnóstico que hubo que corregir</h2>
+  <p>Con la autenticación arreglada, aparecieron dos problemas más, esta vez de calidad del reconocimiento de documentos — y uno de ellos enseña tanto el arreglo correcto como un diagnóstico que salió mal primero.</p>
+
+  <h3>17.1 — El umbral de confianza, ajustado con un número real</h3>
+  <p>Un RUT real, subido desde el frontend, fue rechazado con "el documento no corresponde". El log de la aplicación mostró la razón exacta:</p>
+  <pre>WARN  AzureDocumentClassifierAdapter - Classifier confidence 0.81 below threshold 0.85 for docType 'rut', treating as UNKNOWN</pre>
+  <p>El modelo clasificó correctamente el documento como RUT, con 81&nbsp;% de confianza — pero el umbral configurado (<code>min-confidence</code>) exigía 85&nbsp;%. No era un error de clasificación: era un umbral calibrado sin haber visto antes un caso real tan cerca del límite. Se bajó a <code>0.80</code>, agregado como variable de entorno nueva (<code>AZURE_DOCUMENT_INTELLIGENCE_MIN_CONFIDENCE</code>) tanto en el Bicep como aplicado en caliente con <code>az containerapp update --set-env-vars</code>.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Un umbral de confianza no se ajusta "a ojo": se ajusta mirando el número real que produjo un caso real. <code>0.81</code> rechazado por un umbral de <code>0.85</code> es información concreta; bajarlo a <code>0.80</code> sin haber visto ese dato habría sido adivinar.</p>
+  </div>
+
+  <h3>17.2 — El diagnóstico equivocado de la cédula (y por qué revertirlo fue lo correcto)</h3>
+  <p>Con una cédula real, el resultado fue distinto: ambos campos comparados llegaron vacíos. No había ningún log de "confianza baja" para explicarlo, así que se agregó un log temporal en el adaptador de extracción mostrando <em>todos</em> los campos crudos que devuelve el modelo, con su confianza:</p>
+  <pre>WARN  AzureDocumentExtractorAdapter - Extractor raw fields: tipo_contribuyente=[...], numero_identificacion=[content=1.061.731.887, confidence=0.826], primer_nombre=[content=JONATHAN JULIAN, confidence=0.78], segundo_apellido=[...], ...</pre>
+  <p>A primera vista, esto parecía confirmar una hipótesis razonable: el código buscaba campos llamados <code>cedula_numero</code>, <code>cedula_nombres</code> y <code>cedula_apellidos</code>, que no aparecen en absoluto en esa lista — así que se cambiaron esos nombres en el código por los que sí aparecían en el log (<code>numero_identificacion</code>, <code>primer_nombre</code>, etc.) y se ajustaron los tests.</p>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>Ese cambio estaba equivocado. Quien entrenó el modelo confirmó que el modelo de cédula real sí usa los nombres <code>cedula_numero</code>/<code>cedula_nombres</code>/<code>cedula_apellidos</code> — los campos vistos en el log pertenecían a <strong>otro</strong> modelo. La causa real: la configuración tenía el ID del modelo de cédula apuntando por error al mismo modelo que RUT (los dos usaban <code>model_1</code>), así que cualquier cédula real se procesaba con el modelo equivocado. El arreglo correcto fue apuntar <code>AZURE_DOCUMENT_INTELLIGENCE_MODELS_CEDULA_MODEL_ID</code> a <code>model_2</code>, y revertir el cambio de nombres de campo en el código a su versión original.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Un log muestra <em>qué pasó</em>, no necesariamente <em>por qué</em> era esperable que pasara. Los nombres de campo en el log eran reales y correctos — pero venían del modelo equivocado, no de uno con una nomenclatura distinta. Cuando el dato de una persona con conocimiento directo (quien entrenó el modelo) contradice una hipótesis basada en evidencia circunstancial, lo correcto es revisar la hipótesis, no insistir en ella. Revertir un cambio que resultó estar mal no es un paso perdido: es parte normal de diagnosticar.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué bajar el umbral de confianza sin ver un caso real habría sido un error, aunque el resultado final (0.80) fuera el mismo?<br><em>Porque el valor correcto depende de datos reales observados; adivinarlo sin evidencia puede acertar por casualidad una vez y fallar la siguiente, sin ninguna base para justificar el número elegido.</em></li>
+        <li>¿Qué distingue el primer diagnóstico (equivocado) del segundo (correcto) en el caso de la cédula?<br><em>El primero asumió que el código tenía los nombres de campo mal, basándose solo en lo que mostraba un log; el segundo incorporó información externa y confiable (de quien entrenó el modelo) que reveló que el problema real era un ID de modelo mal configurado, no los nombres.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c18" class="inner">
+  <h2><span class="num">SECCIÓN 18</span>Cómo ver los logs del contenedor</h2>
+  <p>Todo el diagnóstico de la sección 17 (y buena parte de las secciones 11 a 15) dependió de poder ver qué estaba pasando <em>dentro</em> del contenedor. Hay tres formas, de más simple a más potente.</p>
+
+  <table>
+    <thead><tr><th>Forma</th><th>Cuándo usarla</th><th>Cómo</th></tr></thead>
+    <tbody>
+      <tr><td>Portal → Log stream</td><td>Ver logs en vivo mientras pruebas algo manualmente.</td><td>Container App → "Monitoring" → "Log stream".</td></tr>
+      <tr><td><code>az containerapp logs show</code></td><td>Lo mismo, pero desde la terminal, sin abrir el navegador.</td><td><code>az containerapp logs show --name ms-tercero-api --resource-group rg-ms-tercero --follow</code></td></tr>
+      <tr><td>Log Analytics (KQL)</td><td>Buscar algo específico en logs <em>pasados</em>, filtrando por texto, fecha o nivel.</td><td>Portal → "Logs", o <code>az monitor log-analytics query</code> (apéndice A).</td></tr>
+    </tbody>
+  </table>
+
+  <pre><span class="c"># Buscar la última vez que se descartó un campo por confianza baja</span>
+az monitor log-analytics query \
+  --workspace &lt;WORKSPACE_ID&gt; \
+  --analytics-query "ContainerAppConsoleLogs_CL
+    | where ContainerAppName_s == 'ms-tercero-api'
+    | where Log_s contains 'confidence'
+    | order by TimeGenerated desc
+    | take 50"</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El <code>&lt;WORKSPACE_ID&gt;</code> se obtiene con <code>az monitor log-analytics workspace show --resource-group rg-ms-tercero --workspace-name cae-ms-tercero-logs --query customerId -o tsv</code>. Es el mismo workspace de Log Analytics que ya existía desde el Bicep (sección 4): Container Apps lo exige para poder encender el entorno, y es ahí donde terminan todos los <code>System.out</code> y <code>logger.warn(...)</code> de la aplicación.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>La extensión <code>log-analytics</code> de <code>az cli</code> no viene instalada por defecto, y la primera vez que se usa pregunta interactivamente si instalarla — lo cual falla en una terminal no interactiva. Se instala una sola vez, sin preguntas, con <code>az extension add --name log-analytics --yes</code>.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Cuándo conviene usar Log Analytics en vez de Log stream?<br><em>Cuando hay que buscar algo en logs que ya ocurrieron (no en vivo), filtrando por texto, fecha o nivel — Log stream solo muestra lo que llega a partir del momento en que lo abres.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="apa" class="inner">
+  <h2><span class="num">APÉNDICE A</span>Los comandos az cli, en orden</h2>
+  <p>El recorrido completo, de principio a fin, tal como se ejecutó para <code>ms-tercero</code> (con los identificadores propios de la cuenta reemplazados por marcadores, por las razones explicadas en el prólogo).</p>
+
+  <pre><span class="c"># 0. Confirmar la cuenta y la suscripción activas antes de tocar nada</span>
+az account show
+
+<span class="c"># 1. Validar el Bicep localmente (sin desplegar nada)</span>
+az bicep build --file main.bicep
+
+<span class="c"># 2. Desplegar la infraestructura completa (resource group + recursos)</span>
+az deployment sub create \
+  --location westus2 \
+  --template-file main.bicep \
+  --parameters main.parameters.json
+
+<span class="c"># --- a partir de aquí, el setup de GitHub Actions (sección 8) ---</span>
+
+<span class="c"># 3. Crear la identidad (App Registration)</span>
+az ad app create --display-name "ms-tercero-github-actions" --query appId -o tsv
+
+<span class="c"># 4. Crear su Service Principal en esta suscripción</span>
+az ad sp create --id &lt;APP_ID&gt; --query id -o tsv
+
+<span class="c"># 5. Crear la credencial federada (repo + rama exactos que puede usarla)</span>
+az ad app federated-credential create --id &lt;APP_ID&gt; --parameters '{
+  "name": "github-actions-main",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:&lt;tu-usuario&gt;/&lt;tu-repo&gt;:ref:refs/heads/main",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+
+<span class="c"># 6. Darle permisos sobre el resource group (ver apéndice B: esto falló</span>
+<span class="c">#    la primera vez por un motivo que nada tiene que ver con Azure)</span>
+az role assignment create \
+  --assignee &lt;APP_ID&gt; \
+  --role Contributor \
+  --scope /subscriptions/&lt;SUBSCRIPTION_ID&gt;/resourceGroups/rg-ms-tercero</pre>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>Los errores reales de la sección 6 se diagnosticaron con comandos de solo lectura, nunca adivinando: <code>az policy assignment list</code> (error 1), <code>az resource list</code> y <code>az group exists</code> (error 2). Antes de cambiar nada, conviene preguntarle a Azure qué es lo que realmente está pasando.</p>
+  </div>
+</section>
+
+<section id="apb" class="inner">
+  <h2><span class="num">APÉNDICE B</span>El gotcha de Git Bash (MSYS_NO_PATHCONV)</h2>
+  <p>El comando 6 del apéndice A falló la primera vez con un error que no tenía nada que ver con permisos ni con Azure:</p>
+  <pre>ERROR: (MissingSubscription) The request did not have a subscription or
+a valid tenant level resource provider.</pre>
+
+  <p>La causa no estaba en Azure: estaba en la terminal. En Windows, cuando se usa <strong>Git Bash</strong> (el entorno MSYS2), cualquier argumento de un comando que <em>empiece con una barra</em> (<code>/</code>) se interpreta como si fuera una ruta de archivo de Unix, y Git Bash la "traduce" automáticamente a una ruta de Windows antes de pasársela al programa. El argumento <code>--scope /subscriptions/&lt;SUBSCRIPTION_ID&gt;/resourceGroups/rg-ms-tercero</code> empieza justo con esa barra, así que llegó a <code>az</code> convertido en una ruta de disco sin sentido — de ahí que Azure dijera que "no había una suscripción", literalmente no la reconocía como tal.</p>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p>El mensaje de error no menciona para nada a Git Bash, rutas, ni conversión de nada. Apunta directo a "falta la suscripción", lo que lleva a sospechar primero de permisos, de la sesión de <code>az login</code>, o del propio id de suscripción — cuando el argumento nunca llegó intacto al comando.</p>
+  </div>
+
+  <p>La solución es una variable de entorno que desactiva esa conversión automática, solo para el comando que la necesita:</p>
+
+  <pre>MSYS_NO_PATHCONV=1 az role assignment create \
+  --assignee &lt;APP_ID&gt; \
+  --role Contributor \
+  --scope /subscriptions/&lt;SUBSCRIPTION_ID&gt;/resourceGroups/rg-ms-tercero</pre>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Cualquier comando de Azure CLI (o de cualquier otra herramienta) ejecutado desde Git Bash en Windows, cuyo argumento empiece con <code>/</code>, es candidato a este problema — no solo <code>az role assignment</code>. Si un comando que debería funcionar falla con un error que no cuadra con lo que pediste, y estás en Git Bash, <code>MSYS_NO_PATHCONV=1</code> es de las primeras cosas a probar antes de sospechar de la cuenta o los permisos.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué el error <code>MissingSubscription</code> no apuntaba directamente a la causa real?<br><em>Porque Azure recibió el argumento ya corrompido por la conversión de ruta de Git Bash; desde el punto de vista de Azure, simplemente no reconocía nada parecido a un id de suscripción válido, sin ninguna pista de que el problema era de la terminal.</em></li>
+        <li>¿Qué tienen en común los argumentos propensos a este problema en Git Bash?<br><em>Empezar con una barra (/), como las rutas de recursos de Azure (/subscriptions/.../resourceGroups/...).</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="glosario" class="inner">
+  <h2><span class="num">CONSULTA</span>Glosario</h2>
+  <p>Términos de este tema, en orden alfabético.</p>
+  <input id="glossFilter" placeholder="Filtrar términos... (ej. OIDC, scope, idempotencia)" autocomplete="off">
+
+  <div class="az">
+    <a href="#gl-a">A</a><a href="#gl-b">B</a><a href="#gl-c">C</a><a href="#gl-d">D</a>
+    <a href="#gl-e">E</a><a href="#gl-g">G</a><a href="#gl-i">I</a><a href="#gl-l">L</a>
+    <a href="#gl-m">M</a><a href="#gl-o">O</a><a href="#gl-p">P</a><a href="#gl-r">R</a>
+    <a href="#gl-s">S</a><a href="#gl-u">U</a><a href="#gl-w">W</a>
+  </div>
+
+  <h4 class="gl-letter" id="gl-a">A</h4>
+  <dl class="gl">
+    <div class="ge"><dt>ACR <span class="en">Azure Container Registry</span></dt><dd>Registro privado de imágenes Docker en Azure. En este proyecto guarda la imagen del backend, con una etiqueta por cada commit (sección 4, 9).</dd></div>
+    <div class="ge"><dt>ACR Tasks</dt><dd>Función de Azure Container Registry que construye imágenes Docker <em>dentro</em> de Azure (<code>az acr build</code>), sin necesitar Docker en la máquina que lanza el comando. No está permitida en la suscripción de este proyecto (sección 11); se reemplazó por <code>docker build</code> + <code>docker push</code> corriendo en el propio runner de GitHub Actions.</dd></div>
+    <div class="ge"><dt>ARM template</dt><dd>El formato nativo (JSON) en el que Azure Resource Manager procesa cualquier despliegue declarativo. Bicep se compila a ARM; Azure nunca lee un archivo Bicep directamente (sección 2).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-b">B</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Bicep</dt><dd>Lenguaje declarativo de Microsoft para describir infraestructura de Azure, más legible que ARM. Se valida con <code>az bicep build</code> y se despliega con <code>az deployment</code> (sección 2).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-c">C</h4>
+  <dl class="gl">
+    <div class="ge"><dt>CI/CD <span class="en">Continuous Integration / Continuous Deployment</span></dt><dd>Automatizar, respectivamente, la compilación/pruebas de cada cambio y su entrega hasta producción (sección 7).</dd></div>
+    <div class="ge"><dt>Container App</dt><dd>El recurso de Azure que corre un contenedor concreto: su imagen, variables de entorno, puerto y reglas de escalado (sección 4).</dd></div>
+    <div class="ge"><dt>Credencial federada <span class="en">federated credential</span></dt><dd>Regla explícita que le dice a Azure qué token de identidad externo (de GitHub Actions, en este caso) debe aceptar, y de cuál repositorio y rama exactos (sección 8).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-d">D</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Declarativo <span class="en">vs. imperativo</span></dt><dd>Un enfoque declarativo describe el resultado final deseado; uno imperativo lista los pasos exactos para llegar ahí. Bicep es declarativo (sección 1).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-e">E</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Express environment</dt><dd>El nivel por defecto (gratuito) de un Container Apps Environment, con menos opciones que el nivel "Workload Profiles"; no soporta pull de imágenes por identidad administrada (sección 6), ni <code>revisionSuffix</code>, y presentó un bug real con el pull de imágenes privadas incluso con credenciales correctas (secciones 13–14).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-g">G</h4>
+  <dl class="gl">
+    <div class="ge"><dt>GitHub Actions</dt><dd>Motor de automatización de GitHub: ejecuta <em>workflows</em> definidos en <code>.github/workflows/*.yml</code> en respuesta a eventos del repositorio (sección 7, 9).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-i">I</h4>
+  <dl class="gl">
+    <div class="ge"><dt>IaC <span class="en">Infrastructure as Code</span></dt><dd>Describir infraestructura en archivos de texto versionables y reproducibles, en vez de crearla a mano (sección 1).</dd></div>
+    <div class="ge"><dt>Idempotencia</dt><dd>Propiedad de una operación que produce el mismo resultado sin importar cuántas veces se repita. Clave para poder reintentar un despliegue tras corregir un error (sección 1).</dd></div>
+    <div class="ge"><dt>ID inmutable</dt><dd>Número interno que GitHub asigna a una cuenta o repositorio y que nunca cambia, aunque el nombre sí. Aparece en el <em>subject</em> de los tokens OIDC como <code>login@id</code>, como protección contra renombrar cuentas para falsificar tokens (sección 12).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-l">L</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Log Analytics</dt><dd>Servicio de Azure donde Container Apps envía los logs de la aplicación. Se consulta con KQL (<em>Kusto Query Language</em>), desde el portal o con <code>az monitor log-analytics query</code> (sección 18).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-m">M</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Managed identity <span class="en">identidad administrada</span></dt><dd>Cuenta de servicio gestionada automáticamente por Azure (sin contraseña que rotar) que un recurso puede usar para autenticarse contra otros recursos (sección 4).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-o">O</h4>
+  <dl class="gl">
+    <div class="ge"><dt>OIDC <span class="en">OpenID Connect</span></dt><dd>Protocolo sobre el que se construyen las credenciales federadas: permite que un sistema externo (GitHub) obtenga un token de identidad de corta duración, verificable, sin contraseña almacenada (sección 8).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-p">P</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Parámetros, archivo de</dt><dd>Archivo JSON (<code>main.parameters.json</code>) que asigna valores concretos a los parámetros de un Bicep. La versión sin secretos (<code>*.example.json</code>) se versiona; la real, con la clave de Document Intelligence, no (sección 5).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-r">R</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Relaxed binding</dt><dd>Mecanismo de Spring Boot que convierte automáticamente una variable de entorno (ej. <code>AZURE_DOCUMENT_INTELLIGENCE_API_KEY</code>) en una propiedad de configuración (<code>azure.document-intelligence.api-key</code>), sin necesidad de un <code>application.yml</code>. Exige coincidencia exacta de nombre; si no coincide, la propiedad queda vacía sin ningún error (sección 16).</dd></div>
+    <div class="ge"><dt>Resource group</dt><dd>Carpeta lógica que agrupa recursos de Azure relacionados, para administrarlos y borrarlos juntos. Vive dentro de una suscripción (sección 3).</dd></div>
+    <div class="ge"><dt>Revisión <span class="en">revision</span></dt><dd>Una versión concreta y desplegada de una Container App (su imagen, variables de entorno y configuración en un momento dado). En modo de revisión única, cada actualización reemplaza a la anterior (sección 13).</dd></div>
+    <div class="ge"><dt>Role assignment <span class="en">RBAC</span></dt><dd>Asignación de un rol (ej. <em>Contributor</em>) a una identidad sobre un recurso o un scope. Resuelve la autorización, por separado de la autenticación (sección 8).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-s">S</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Scope <span class="en">ámbito</span></dt><dd>El nivel de la jerarquía de Azure (suscripción, resource group, recurso) en el que opera un despliegue de Bicep o una asignación de permisos (sección 3).</dd></div>
+    <div class="ge"><dt>Secreto <span class="en">vs. variable</span></dt><dd>En GitHub Actions, un <em>secret</em> se oculta en la interfaz y en los logs; una <em>variable</em> es texto visible pensado para configuración no sensible (sección 10).</dd></div>
+    <div class="ge"><dt>Service principal</dt><dd>La identidad de una App Registration, usable dentro de una suscripción concreta para autenticarse y recibir permisos (sección 8).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-u">U</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Umbral de confianza <span class="en">confidence threshold</span></dt><dd>El valor mínimo (0–1) que Azure Document Intelligence debe reportar para que una clasificación o un campo extraído se acepte. Por debajo, se descarta aunque el dato extraído sea correcto (sección 17.1).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-w">W</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Workflow</dt><dd>Un archivo YAML dentro de <code>.github/workflows/</code> que describe los pasos (<em>jobs</em> y <em>steps</em>) que GitHub Actions ejecuta en respuesta a un evento (sección 9).</dd></div>
+  </dl>
+</section>
+
+<section id="herramientas" class="inner">
+  <h2><span class="num">PRÁCTICA</span>Herramientas interactivas</h2>
+  <p>Corren en tu navegador, sin enviar nada a ningún lado.</p>
+
+  <div class="tool">
+    <h4>1 · ¿Secreto o variable?</h4>
+    <p>Escribe el nombre de una variable de entorno o de configuración (como las que viste en la sección 10) y la herramienta te dice, con la misma regla de criterio de ese apartado, si normalmente debería ir como <em>secret</em> o como <em>variable</em> en GitHub Actions.</p>
+    <p><span class="pill">heurística simple</span><span class="pill">no sustituye tu juicio</span></p>
+    <input class="ctl" id="nombreVar" value="AZURE_CLIENT_ID" autocomplete="off">
+    <div class="out" id="resultadoVar"></div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<button id="top" title="Volver arriba">^</button>
+<button id="tocBtn" title="Abrir índice" aria-expanded="false">☰ Índice</button>
+<div id="sideOverlay"></div>
+
+<script src="_motor.js"></script>
+<script>
+/* Herramienta propia de este tema: clasificador ingenuo secreto/variable.
+   Depende del motor compartido: espera que _motor.js ya se haya ejecutado. */
+(function () {
+  "use strict";
+  var escapeHtml = window.__guiaUtil.escapeHtml;
+
+  var PALABRAS_SECRETO = ["KEY", "SECRET", "PASSWORD", "TOKEN", "CLIENT_ID",
+    "TENANT_ID", "SUBSCRIPTION_ID", "CREDENTIAL", "CONNECTION_STRING", "PWD"];
+
+  function clasificar(nombre) {
+    var n = nombre.toUpperCase();
+    for (var i = 0; i < PALABRAS_SECRETO.length; i++) {
+      if (n.indexOf(PALABRAS_SECRETO[i]) !== -1) return PALABRAS_SECRETO[i];
+    }
+    return null;
+  }
+
+  function actualizar() {
+    var valor = (entrada.value || "").trim();
+    if (!valor) { salida.innerHTML = ""; return; }
+    var coincidencia = clasificar(valor);
+    var veredicto, motivo;
+    if (coincidencia) {
+      veredicto = "Probablemente SECRET";
+      motivo = "Contiene \"" + coincidencia + "\": suena a credencial o identificador de cuenta. Guárdalo como secret, aunque con OIDC no sea técnicamente una contraseña (sección 10).";
+    } else {
+      veredicto = "Probablemente VARIABLE";
+      motivo = "No contiene ninguna palabra asociada a credenciales. Si solo es un nombre de recurso, una región o una bandera de configuración, una variable visible es suficiente.";
+    }
+    salida.innerHTML =
+      "<div class=\"row\"><span>Entrada</span><span>" + escapeHtml(valor) + "</span></div>" +
+      "<div class=\"row\"><span>Veredicto</span><span>" + escapeHtml(veredicto) + "</span></div>" +
+      "<div class=\"row\"><span>Motivo</span><span>" + escapeHtml(motivo) + "</span></div>";
+  }
+
+  var entrada = document.getElementById("nombreVar");
+  var salida = document.getElementById("resultadoVar");
+  if (entrada && salida) { entrada.addEventListener("input", actualizar); actualizar(); }
+})();
+</script>
+</body>
+</html>

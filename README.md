@@ -36,8 +36,9 @@ JavaScript: se abre en cualquier navegador, incluso sin conexión.
 |---|------|-----------|
 | 01 | **Del bit al exploit** | Binario, hexadecimal, CPU, memoria y cómo se encadenan hasta un exploit real. |
 | 02 | **Estructuras de datos en Java** | `List`, `Set`, `Map`, `Queue`, su complejidad, sus *imports* y cómo funcionan por dentro. |
+| 03 | **Infraestructura como código y CI/CD en Azure** | Bicep, Azure Container Apps y GitHub Actions con OIDC: un despliegue real, con sus tres errores reales y cómo se diagnosticaron. |
 
-La parada "Tema 03" del portal está reservada para el próximo.
+La parada "Tema 04" del portal está reservada para el próximo.
 
 ## Estructura del repositorio
 
@@ -52,7 +53,8 @@ proyecto-estudio/
    ├─ _motor.js               ← motor compartido (índice, buscador, filtros, progreso)
    ├─ _plantilla.html         ← molde comentado para crear un tema nuevo
    ├─ del-bit-al-exploit.html ← Tema 01
-   └─ java-estructuras.html   ← Tema 02
+   ├─ java-estructuras.html   ← Tema 02
+   └─ iac-azure-cicd.html     ← Tema 03
 ```
 
 ## Cómo añadir un tema nuevo

@@ -5,7 +5,7 @@
 > abra este repositorio. Explica **qué hay aquí**, **cómo está organizada la
 > biblioteca**, **qué se puede modificar** y **cómo añadir temas nuevos**.
 >
-> Última actualización: 2026-10-17.
+> Última actualización: 2026-10-26.
 
 ---
 
@@ -40,7 +40,8 @@ proyecto-estudio/                       ← raíz del repositorio (esto sube a G
    ├─ _motor.js                         ← motor COMPARTIDO: índice, buscador, filtros, progreso
    ├─ _plantilla.html                   ← molde para crear un tema nuevo
    ├─ del-bit-al-exploit.html           ← Tema 01 (informática desde cero → exploit PS5)
-   └─ java-estructuras.html             ← Tema 02 (estructuras de datos en Java)
+   ├─ java-estructuras.html             ← Tema 02 (estructuras de datos en Java)
+   └─ iac-azure-cicd.html               ← Tema 03 (IaC con Bicep + CI/CD con GitHub Actions/OIDC)
 ```
 
 **Fuera del repositorio** (en la carpeta padre, en la máquina del autor) están
@@ -134,7 +135,8 @@ guia/
 │                          normalize, hex2, hexPad } para las herramientas
 ├─ _plantilla.html     Molde comentado para un tema nuevo.
 ├─ del-bit-al-exploit.html   Tema 01
-└─ java-estructuras.html     Tema 02
+├─ java-estructuras.html     Tema 02
+└─ iac-azure-cicd.html       Tema 03
 ```
 
 **Regla de oro de la arquitectura**: cada tema enlaza el motor con
@@ -383,8 +385,9 @@ restricción de políticas de ejecución del perfil de PowerShell, no al comando
 | `guia/_plantilla.html` | Publicado |
 | `guia/del-bit-al-exploit.html` | Publicado (Tema 01, 3.427 líneas) |
 | `guia/java-estructuras.html` | Publicado (Tema 02, 1.544 líneas) |
+| `guia/iac-azure-cicd.html` | Publicado (Tema 03, IaC con Bicep + CI/CD con GitHub Actions/OIDC) |
 
-**Temas previstos / ideas**: quedan libres las paradas "Tema 03" y siguientes.
+**Temas previstos / ideas**: queda libre la parada "Tema 04" y siguientes.
 Ideas anotadas por el usuario: más temas de estructuras de datos, redes,
 sistemas operativos.
 
