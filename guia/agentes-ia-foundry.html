@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentes de IA y Microsoft Foundry - Biblioteca de estudio</title>
+<link rel="stylesheet" href="_estilo.css">
+</head>
+<body>
+<div id="prog"></div>
+<div id="wrap">
+
+<aside id="side">
+  <button id="sideClose" aria-label="Cerrar índice">✕</button>
+  <a class="backlink" href="index.html">Volver a la biblioteca</a>
+  <h1>Agentes de IA y Microsoft Foundry</h1>
+  <p class="sub">Tema 06 - De un modelo de lenguaje a un agente que actúa con tus datos</p>
+  <input id="docSearch" placeholder="Buscar en toda la guía..." autocomplete="off">
+  <div id="docResults"></div>
+  <input id="tocFilter" placeholder="Filtrar índice..." autocomplete="off">
+  <nav id="toc">
+    <div class="grp">Qué es un agente</div>
+    <a href="#intro">Cómo usar este tema</a>
+    <a href="#c1">1. De un modelo de lenguaje a un agente</a>
+    <a href="#c2">2. Las cuatro piezas de un agente</a>
+    <div class="grp">Dónde se usa</div>
+    <a href="#c3">3. Casos de uso: empresas, proyectos, día a día</a>
+    <a href="#c4">4. Casos de éxito reales de Microsoft</a>
+    <div class="grp">Microsoft Foundry</div>
+    <a href="#c5">5. Qué es Microsoft Foundry (y por qué cambió de nombre dos veces)</a>
+    <a href="#c6">6. La jerarquía: suscripción, grupo de recursos, recurso y proyecto</a>
+    <a href="#c7">7. Implementar un proyecto desde el portal</a>
+    <a href="#c8">8. Herramientas y SDK para desarrolladores</a>
+    <div class="grp">Modelos y costos</div>
+    <a href="#c9">9. Tipos de implementación de un modelo</a>
+    <a href="#c10">10. Gestión de costos</a>
+    <a href="#c11">11. IA tradicional: Foundry Tools (oír, ver, hablar)</a>
+    <div class="grp">Las piezas que conectan un agente a tus datos</div>
+    <a href="#c12">12. Azure OpenAI Service: el modelo con garantías empresariales</a>
+    <a href="#c13">13. Azure AI Search: el motor de búsqueda detrás del RAG</a>
+    <a href="#c14">14. RAG: qué es y qué arquitecturas existen</a>
+    <a href="#c15">15. Foundry IQ: la capa de conocimiento compartida</a>
+    <div class="grp">De dónde salen los datos de una empresa</div>
+    <a href="#c16">16. Warehouse, tabla de hechos, data lake y lakehouse</a>
+    <div class="grp">Apéndice</div>
+    <a href="#apa">A. El avatar que vende en vivo: qué se pudo verificar</a>
+    <div class="grp">Consulta</div>
+    <a href="#glosario">Glosario A–Z</a>
+    <a href="#refs">Fuentes y para seguir leyendo</a>
+    <a href="#herramientas">Herramientas interactivas</a>
+  </nav>
+</aside>
+
+<main id="main">
+
+<header class="cover inner">
+  <div class="kicker">Tema 06</div>
+  <h1>Agentes de IA y Microsoft Foundry</h1>
+  <p>Apuntes de una clase sobre <strong>agentes de IA</strong> y la plataforma <strong>Microsoft Foundry</strong> (antes Azure AI Foundry, antes Azure AI Studio): qué diferencia a un agente de un simple chat, de qué piezas está hecho, cómo se despliega y se paga en Azure, qué es <strong>RAG</strong> y qué arquitecturas existen para implementarlo, qué es <strong>Foundry IQ</strong>, y de dónde saca una empresa los datos con los que alimenta todo esto (warehouse, data lake, lakehouse).</p>
+  <p class="meta">16 secciones · 1 apéndice · glosario A–Z · 1 herramienta interactiva<br>Nivel: sin experiencia previa en Azure ni en IA generativa</p>
+</header>
+
+<section id="intro" class="inner">
+  <h2><span class="num">PRÓLOGO</span>Cómo usar este tema</h2>
+  <p>Este tema junta dos cosas: las diapositivas de una clase de Código Facilito sobre agentes de IA y Microsoft Foundry, y una verificación posterior de cada afirmación dudosa contra fuentes actuales (documentación de Microsoft, anuncios oficiales, prensa especializada). Donde algo <strong>no</strong> se pudo confirmar, el texto lo dice explícitamente en vez de darlo por cierto: la regla de esta biblioteca es que los datos sean reales y verificables (apéndice A es el ejemplo más claro de esto).</p>
+  <p>El hilo tiene seis bloques:</p>
+  <table>
+    <thead><tr><th>Bloque</th><th>Secciones</th><th>Qué resuelve</th></tr></thead>
+    <tbody>
+      <tr><td>Qué es un agente</td><td><a href="#c1">1</a>–<a href="#c2">2</a></td><td>La diferencia entre un modelo de lenguaje, un chat y un agente; y las cuatro piezas que arman un agente.</td></tr>
+      <tr><td>Dónde se usa</td><td><a href="#c3">3</a>–<a href="#c4">4</a></td><td>Casos de uso concretos y casos de éxito reales publicados por Microsoft.</td></tr>
+      <tr><td>Microsoft Foundry</td><td><a href="#c5">5</a>–<a href="#c8">8</a></td><td>Qué es la plataforma, su historia de nombres, su jerarquía de recursos, y cómo se crea un proyecto.</td></tr>
+      <tr><td>Modelos y costos</td><td><a href="#c9">9</a>–<a href="#c11">11</a></td><td>Cómo se despliega un modelo, cómo se paga, y qué es la IA "tradicional" (Foundry Tools) frente a la generativa.</td></tr>
+      <tr><td>Conectar un agente a tus datos</td><td><a href="#c12">12</a>–<a href="#c15">15</a></td><td>Azure OpenAI Service, Azure AI Search, RAG y sus arquitecturas, y Foundry IQ.</td></tr>
+      <tr><td>De dónde salen los datos</td><td><a href="#c16">16</a></td><td>Data warehouse, tabla de hechos, data lake y lakehouse: dónde vive la información que un agente empresarial termina consultando.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Las convenciones visuales de este tema</h3>
+  <div class="box analogy"><span class="lbl">Analogía</span><p>Un ejemplo de la vida diaria que explica el concepto antes de la definición técnica.</p></div>
+  <div class="box real"><span class="lbl">Ejemplo real</span><p>Un dato o cifra publicada por Microsoft o por otra fuente verificable, citada en la sección de fuentes.</p></div>
+  <div class="box warn"><span class="lbl">Ojo con esto</span><p>Un error de concepto frecuente, o un dato que cambia rápido (nombres, precios, regiones disponibles).</p></div>
+  <div class="box key"><span class="lbl">Idea clave</span><p>El resumen de un párrafo. Lo que hay que llevarse.</p></div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Microsoft renombra esta plataforma y sus servicios con frecuencia (sección 5). Este tema usa los nombres vigentes a noviembre de 2026 y anota el nombre anterior entre paréntesis la primera vez que aparece cada servicio, porque es muy probable que sigas encontrando el nombre viejo en videos, artículos y hasta en el propio portal durante la transición.</p>
+  </div>
+</section>
+
+<section id="c1" class="inner">
+  <h2><span class="num">SECCIÓN 1</span>De un modelo de lenguaje a un agente</h2>
+  <p>La clase arranca distinguiendo tres niveles que suelen confundirse porque todos "usan IA":</p>
+  <table>
+    <thead><tr><th>Nivel</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td>Modelo de lenguaje <span class="en">(LLM)</span></td><td>Genera texto a partir de una indicación (<em>prompt</em>). No recuerda nada entre llamadas ni ejecuta ninguna acción por su cuenta.</td></tr>
+      <tr><td>Aplicación de chat</td><td>Envuelve al modelo con una conversación: mantiene historial y responde preguntas con contexto, pero sigue siendo reactiva (espera a que le preguntes).</td></tr>
+      <tr><td>Agente de IA</td><td>Recibe una <strong>meta</strong>, no solo una pregunta. Razona qué pasos seguir, usa herramientas para ejecutar acciones, y puede encadenar varios pasos sin que un humano apruebe cada uno.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Un modelo de lenguaje es como un empleado que solo contesta lo que le preguntas, sin moverse de su silla. Una aplicación de chat es el mismo empleado, pero que ya recuerda lo que hablaron antes en la conversación. Un agente es ese empleado con permiso para levantarse, ir al archivo, sacar un documento, llenar un formulario y entregarlo, sin que tengas que indicarle cada movimiento.</p>
+  </div>
+
+  <p>La definición que usa la clase: <strong>un agente es una aplicación que usa un modelo de IA para entender una meta, decidir los pasos y ejecutar acciones con herramientas.</strong> El ejemplo dado: un agente de soporte lee el ticket, consulta la base de conocimiento, propone una solución y crea la tarea de seguimiento — cuatro pasos encadenados, sin que nadie le dijera "ahora busca en la base de conocimiento" ni "ahora crea la tarea": el agente lo decidió.</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>La diferencia no es el modelo (puede ser exactamente el mismo modelo de lenguaje en los tres niveles). La diferencia es <strong>cuánta autonomía y cuántas herramientas</strong> hay alrededor del modelo. Por eso "las empresas buscan automatizar procesos completos, no solo responder preguntas" (frase textual de la clase): un chat responde, un agente termina el proceso.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Si dos sistemas usan el mismo modelo de lenguaje por debajo, ¿qué los distingue como "chat" o como "agente"?<br><em>La autonomía para decidir pasos y las herramientas que tiene disponibles para ejecutar acciones, no el modelo en sí.</em></li>
+        <li>¿Por qué un agente de soporte que "lee el ticket, consulta la base de conocimiento, propone una solución y crea la tarea de seguimiento" es un agente y no un chatbot?<br><em>Porque encadena varias acciones y decide el orden por sí mismo a partir de una meta ("resolver el ticket"), en vez de solo responder a una pregunta puntual.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c2" class="inner">
+  <h2><span class="num">SECCIÓN 2</span>Las cuatro piezas de un agente</h2>
+  <p>Según la clase, un agente se arma con cuatro piezas. Las cuatro aparecen también, más adelante, como servicios independientes dentro de Microsoft Foundry (secciones 11 a 15), así que vale la pena fijarlas desde ya:</p>
+  <table>
+    <thead><tr><th>Pieza</th><th>Función</th><th>Dónde se ve más adelante</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Modelo</strong></td><td>Razona y genera lenguaje natural.</td><td>Azure OpenAI Service (sección 12)</td></tr>
+      <tr><td><strong>Instrucciones</strong></td><td>Definen el rol, el tono y los límites del agente.</td><td>El <em>system prompt</em> con el que se configura cada agente</td></tr>
+      <tr><td><strong>Herramientas</strong></td><td>Permiten consultar datos y realizar acciones.</td><td>Foundry Tools (sección 11), conectores a otros sistemas</td></tr>
+      <tr><td><strong>Conocimiento</strong></td><td>Aporta información confiable de tus propias fuentes.</td><td>Azure AI Search y Foundry IQ (secciones 13 y 15)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>Microsoft Foundry Agent Service (el servicio que ejecuta agentes dentro de Foundry) describe exactamente este mismo reparto: conecta modelos, herramientas y frameworks en un único motor en tiempo de ejecución, y se encarga de la identidad, la seguridad, la observabilidad y el escalado, para que el desarrollador se concentre en la lógica del agente.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>"Instrucciones" no es un campo decorativo: es lo único que mantiene al agente dentro de su rol. Un agente sin instrucciones claras tiene el mismo modelo y las mismas herramientas que uno bien definido, pero puede intentar resolver cualquier cosa con cualquier herramienta, lo cual en producción es tan peligroso como no tener permisos bien configurados.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué pieza de las cuatro es la que le da al agente acceso a información específica de tu empresa, en vez de solo lo que el modelo aprendió en su entrenamiento?<br><em>El conocimiento (ligado a Azure AI Search / Foundry IQ, sección 15).</em></li>
+        <li>¿Por qué un agente con el mismo modelo y las mismas herramientas puede comportarse muy distinto según el caso?<br><em>Porque las instrucciones son las que fijan su rol, su tono y sus límites; sin ellas, el modelo decide libremente cómo interpretar la meta.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c3" class="inner">
+  <h2><span class="num">SECCIÓN 3</span>Casos de uso: empresas, proyectos, día a día</h2>
+  <p>La clase organiza el valor de los agentes en tres planos. No son categorías técnicas distintas — el mismo agente de "resumir y buscar" sirve en los tres — sino tres escalas de impacto:</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p><strong>Empresas</strong>: atención al cliente disponible todo el día, automatización de procesos internos, análisis de documentos y datos a escala.<br>
+    <strong>Proyectos</strong>: resúmenes de reuniones y tareas pendientes, apoyo en desarrollo/pruebas/documentación, seguimiento de avances y riesgos.<br>
+    <strong>Día a día</strong>: organizar correo y agenda, investigar y comparar información, aprender temas nuevos con un tutor personal.</p>
+  </div>
+
+  <p>El ejemplo que la propia clase usó para ilustrar el plano "día a día" fue buscar casos de éxito de clientes de Microsoft directamente en su portal de historias — que es justo el tema de la sección siguiente.</p>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Da un ejemplo de un mismo tipo de agente (por ejemplo, "resumir documentos largos") aplicado en los tres planos: empresa, proyecto y día a día.<br><em>Empresa: resumir reclamaciones de clientes a escala. Proyecto: resumir el acta de cada reunión del equipo. Día a día: resumir un artículo largo antes de decidir si leerlo completo.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c4" class="inner">
+  <h2><span class="num">SECCIÓN 4</span>Casos de éxito reales de Microsoft</h2>
+  <p>Microsoft mantiene un portal público de historias de clientes (<code>microsoft.com/.../customers/search</code>) con más de 2.300 casos, filtrables por industria, necesidad de negocio y producto usado. De las diapositivas de la clase y de este portal, tres casos sirven como referencia concreta de qué tan lejos puede llegar un agente bien construido:</p>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p><strong>Microsoft (caso propio)</strong>: usa Azure AI Search, Microsoft Foundry y Microsoft Copilot Studio para responder preguntas complejas de licenciamiento más rápido, combinando búsqueda sobre documentos internos con un agente conversacional.</p>
+  </div>
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p><strong>Carrier</strong> (industria/manufactura): ofrece un soporte constante y centrado en las personas con Microsoft 365 Copilot, Microsoft Copilot Studio y SharePoint como fuente de conocimiento.</p>
+  </div>
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p><strong>Armanino</strong> (servicios profesionales): construyó una "fábrica de aplicaciones de IA" sobre Microsoft Foundry, usando Azure y Microsoft Copilot Studio, y reportó una reducción del <strong>89 %</strong> en el tiempo de producción de aplicaciones.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Las cifras de casos de éxito vienen de comunicados de las propias empresas o de Microsoft, no de una auditoría independiente. Son útiles como referencia de lo que es posible, no como garantía de que tu propio caso tendrá el mismo resultado.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué conviene filtrar el portal de casos de éxito por tu propia industria y producto, en vez de leer casos al azar?<br><em>Porque la arquitectura y el ahorro reportado dependen mucho del contexto (tamaño de la empresa, tipo de dato, producto usado); un caso de otra industria puede no ser comparable.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c5" class="inner">
+  <h2><span class="num">SECCIÓN 5</span>Qué es Microsoft Foundry (y por qué cambió de nombre dos veces)</h2>
+  <p>La plataforma donde se construyen estos agentes ha tenido tres nombres en poco más de dos años, aunque el portal siempre vivió en la misma dirección (<code>ai.azure.com</code>):</p>
+  <table>
+    <thead><tr><th>Fecha</th><th>Nombre</th></tr></thead>
+    <tbody>
+      <tr><td>Noviembre 2023</td><td>Azure AI Studio</td></tr>
+      <tr><td>Noviembre 2024 (Microsoft Ignite)</td><td>Azure AI Foundry</td></tr>
+      <tr><td>Noviembre 2025 / enero 2026</td><td>Microsoft Foundry (nombre vigente)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>El último cambio no fue solo cosmético: junto con el nombre, Microsoft amplió el alcance de la plataforma para que no fuera "solo Azure", sino que abarcara también integraciones con Microsoft 365 y Microsoft Fabric (de ahí servicios como Work IQ y Fabric IQ en la sección 15).</p>
+  </div>
+
+  <p>Por eso, en clases o artículos grabados antes de noviembre de 2025 verás "Azure AI Foundry" o incluso "Azure AI Studio" refiriéndose exactamente a lo mismo que este tema llama Microsoft Foundry. Como parte del mismo cambio de nombre, el paquete de servicios de IA "clásicos" (habla, visión, lenguaje) que antes se llamaba <strong>Azure AI Services</strong> (y antes de eso, <strong>Azure Cognitive Services</strong>) pasó a llamarse <strong>Foundry Tools</strong> (sección 11).</p>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Microsoft Foundry es la plataforma unificada para construir aplicaciones de IA: agrupa modelos (Foundry Models, incluido Azure OpenAI Service), herramientas prearmadas (Foundry Tools), el motor para correr agentes (Foundry Agent Service) y la capa de conocimiento (Foundry IQ). No es un producto nuevo desde cero: es la consolidación, bajo un solo nombre y un solo portal, de servicios que antes vivían dispersos en Azure.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Si un video de 2024 habla de "Azure AI Foundry" y uno de este tema habla de "Microsoft Foundry", ¿son plataformas distintas?<br><em>No: es la misma plataforma, en distintos momentos de su historia de nombres (Azure AI Studio → Azure AI Foundry → Microsoft Foundry).</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c6" class="inner">
+  <h2><span class="num">SECCIÓN 6</span>La jerarquía: suscripción, grupo de recursos, recurso y proyecto</h2>
+  <p>Foundry organiza el trabajo en cuatro niveles anidados, de más general a más específico:</p>
+  <pre><span class="c">Suscripción de Azure</span>
+  └─ <span class="c">Grupo de recursos</span>
+       └─ <span class="c">Recurso de Foundry</span>
+            ├─ Proyecto A
+            └─ Proyecto B</pre>
+
+  <table>
+    <thead><tr><th>Nivel</th><th>Qué aporta</th></tr></thead>
+    <tbody>
+      <tr><td>Recurso de Foundry</td><td>Aporta procesamiento, almacenamiento, entrega de modelos y otros servicios: es la "cuenta" de Foundry dentro de Azure.</td></tr>
+      <tr><td>Proyecto de Foundry</td><td>Entorno de trabajo aislado para desarrollar aplicaciones y agentes; varios proyectos pueden compartir el mismo recurso.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>El recurso de Foundry es como el edificio de oficinas (con su electricidad, su internet, su recepción); cada proyecto es una oficina individual dentro de ese edificio, con su propio equipo y sus propios documentos, pero compartiendo la infraestructura del edificio.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Buena práctica explícita de la clase: <strong>usa un grupo de recursos por laboratorio</strong> (o por experimento), para poder eliminar todo de un solo golpe al terminar, en vez de tener que rastrear e individualmente borrar cada pieza (esto conecta directo con la sección 10 de costos).</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Puede un mismo recurso de Foundry tener varios proyectos?<br><em>Sí: el recurso aporta la infraestructura compartida (cómputo, almacenamiento, modelos) y cada proyecto es un entorno aislado de trabajo sobre esa misma infraestructura.</em></li>
+        <li>¿Por qué agrupar recursos de un experimento en su propio grupo de recursos facilita la limpieza?<br><em>Porque borrar el grupo de recursos borra automáticamente todo lo que contiene, en una sola operación, sin tener que ubicar cada recurso suelto.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c7" class="inner">
+  <h2><span class="num">SECCIÓN 7</span>Implementar un proyecto desde el portal</h2>
+  <p>La clase resume el flujo de creación en cuatro pasos, todos dentro de <code>ai.azure.com</code>:</p>
+  <table>
+    <thead><tr><th>Paso</th><th>Acción</th></tr></thead>
+    <tbody>
+      <tr><td>1. Entra al portal</td><td>Abre <code>ai.azure.com</code> e inicia sesión con tu cuenta de Azure.</td></tr>
+      <tr><td>2. Crea el proyecto</td><td>Selecciona "Crear proyecto" y asígnale un nombre.</td></tr>
+      <tr><td>3. Configura</td><td>En opciones avanzadas, elige suscripción, grupo de recursos, recurso y región.</td></tr>
+      <tr><td>4. Implementa</td><td>Confirma y espera a que el portal cree los recursos.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>El portal crea el recurso de Foundry <strong>y</strong> el proyecto en una sola operación: no hace falta crear primero el recurso a mano y después el proyecto por separado, salvo que entres a "opciones avanzadas" para reutilizar un recurso ya existente (por ejemplo, para meter un segundo proyecto en el mismo recurso, como en el diagrama de la sección 6).</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Si ya tienes un recurso de Foundry y solo quieres un proyecto nuevo dentro de él, ¿qué paso del flujo cambia?<br><em>El paso 3 ("configura"): en vez de dejar que se cree un recurso nuevo, eliges el recurso existente en las opciones avanzadas.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c8" class="inner">
+  <h2><span class="num">SECCIÓN 8</span>Herramientas y SDK para desarrolladores</h2>
+  <p>Para trabajar con Foundry desde código, la clase señala dos frentes:</p>
+  <table>
+    <thead><tr><th>Frente</th><th>Incluye</th></tr></thead>
+    <tbody>
+      <tr><td>Herramientas</td><td>Visual Studio Code, la extensión de Microsoft Foundry para VS Code, GitHub Copilot.</td></tr>
+      <tr><td>SDK</td><td>SDK de Microsoft Foundry, SDK de OpenAI, SDK de Foundry Tools.</td></tr>
+    </tbody>
+  </table>
+
+  <p>En la práctica, un flujo típico desde VS Code es: la extensión de Foundry lista los recursos (agentes, modelos, implementaciones) directamente en el panel lateral, y el código usa el SDK para autenticarse (normalmente con <code>DefaultAzureCredential</code>, sin guardar ninguna clave en el archivo) y llamar al modelo o al agente desplegado.</p>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>"SDK de OpenAI" no significa que estés llamando a los servidores de OpenAI directamente: el mismo SDK (cliente) de OpenAI puede apuntar a un endpoint de Azure OpenAI Service (sección 12), cambiando solo la URL base y la forma de autenticarse. El código de tu aplicación es prácticamente idéntico en ambos casos.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué cambia, en el código, entre usar el SDK de OpenAI contra OpenAI directamente y usarlo contra Azure OpenAI Service?<br><em>Principalmente el endpoint al que apunta el cliente y el mecanismo de autenticación; la forma de llamar a los métodos del SDK es casi idéntica.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c9" class="inner">
+  <h2><span class="num">SECCIÓN 9</span>Tipos de implementación de un modelo</h2>
+  <p>Cuando despliegas (implementas) un modelo en Foundry, eliges entre varios tipos de implementación, cada uno pensado para una carga distinta:</p>
+  <table>
+    <thead><tr><th>Tipo</th><th>Más adecuado para</th></tr></thead>
+    <tbody>
+      <tr><td>Estándar global</td><td>Cargas generales con la cuota más alta.</td></tr>
+      <tr><td>Aprovisionado global</td><td>Alto rendimiento predecible.</td></tr>
+      <tr><td>Lote global</td><td>Trabajos asíncronos grandes.</td></tr>
+      <tr><td>Zona de datos estándar</td><td>Cumplimiento de zona de datos (UE o EE. UU.).</td></tr>
+      <tr><td>Zona de datos aprovisionada</td><td>Zona de datos con rendimiento predecible.</td></tr>
+      <tr><td>Estándar regional</td><td>Cumplimiento regional y bajo volumen.</td></tr>
+      <tr><td>Aprovisionada en la región</td><td>Cumplimiento y rendimiento regionales.</td></tr>
+      <tr><td>Developer</td><td>Solo evaluación de modelos ajustados (<em>fine-tuned</em>).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Regla rápida dada en la clase: <strong>empieza con Estándar global</strong>. Pasa a <strong>aprovisionado</strong> si necesitas rendimiento predecible (por ejemplo, para un acuerdo de nivel de servicio con latencia garantizada). Usa <strong>zona de datos</strong> o <strong>regional</strong> si tienes requisitos de cumplimiento normativo sobre dónde se procesan los datos.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>"Zona de datos" y "regional" no son lo mismo: zona de datos (UE o EE. UU.) es un compromiso amplio de dónde se procesan los datos dentro de ese bloque; "regional" ata el procesamiento a una región de Azure específica (más estrecho, útil cuando una ley exige una región concreta, no solo un bloque).</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Tu aplicación necesita que el 99 % de las respuestas lleguen en menos de 2 segundos, siempre, sin importar la hora del día. ¿Qué tipo de implementación es más adecuado?<br><em>Aprovisionado (global, de zona de datos o regional según el requisito de cumplimiento), porque reserva capacidad dedicada en vez de competir por cuota compartida.</em></li>
+        <li>¿Para qué se usa el tipo "Developer"?<br><em>Únicamente para evaluar modelos ajustados (fine-tuned), no para producción.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c10" class="inner">
+  <h2><span class="num">SECCIÓN 10</span>Gestión de costos</h2>
+  <p>Foundry (y Azure en general) cobra por tres frentes distintos, que conviene no confundir:</p>
+  <table>
+    <thead><tr><th>Frente</th><th>Cómo se cobra</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens de entrada y salida</td><td>En implementaciones estándar, pagas por millón de tokens procesados (lo que entra al modelo y lo que el modelo genera, normalmente a tarifas distintas).</td></tr>
+      <tr><td>Capacidad aprovisionada</td><td>Pagas por unidades reservadas a cambio de rendimiento predecible, independientemente de cuántos tokens proceses realmente ese mes.</td></tr>
+      <tr><td>Servicios asociados</td><td>Almacenamiento, búsqueda (Azure AI Search) y otros recursos conectados al proyecto, cada uno con su propia tarifa.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Buenas prácticas señaladas en la clase:</p>
+  <ul>
+    <li>Crea presupuestos y alertas en <strong>Microsoft Cost Management</strong>.</li>
+    <li>Elige el modelo más pequeño que resuelva la tarea (no el más grande disponible "por si acaso").</li>
+    <li>Limita los tokens máximos de salida.</li>
+    <li>Revisa cuotas y consumo en el portal periódicamente.</li>
+    <li>Elimina el grupo de recursos al terminar cada laboratorio.</li>
+  </ul>
+
+  <pre><span class="c"># Borra TODO lo que cuelga de ese grupo de recursos, de una sola vez</span>
+az group delete --name rg-foundry-clase1 --yes</pre>
+
+  <div class="box danger"><span class="lbl">Trampa</span>
+    <p><code>az group delete</code> no pide confirmación adicional cuando usas <code>--yes</code>: borra el grupo de recursos completo, con todo lo que contenga, sin posibilidad de deshacer. Es exactamente la contrapartida de la buena práctica de la sección 6 ("un grupo de recursos por laboratorio"): esa misma agrupación que facilita limpiar rápido también significa que un <code>--yes</code> apresurado en el grupo equivocado se lleva todo lo que había dentro.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué "elegir el modelo más pequeño que resuelva la tarea" es una recomendación de costos y no solo de rendimiento?<br><em>Porque el cobro por tokens suele ser más barato en modelos más pequeños; usar un modelo grande para una tarea simple paga de más sin necesidad.</em></li>
+        <li>¿Qué diferencia hay entre pagar por tokens y pagar por capacidad aprovisionada?<br><em>Por tokens pagas según el uso real (variable); por capacidad aprovisionada pagas una tarifa fija por una reserva de rendimiento, la uses toda o no.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c11" class="inner">
+  <h2><span class="num">SECCIÓN 11</span>IA tradicional: Foundry Tools (oír, ver, hablar)</h2>
+  <p>Antes de los modelos generativos, la "IA" que más se usaba en productos reales era un conjunto de capacidades puntuales: reconocer una cara, transcribir una llamada, traducir un texto. En Microsoft, ese conjunto de servicios prearmados se llamó primero <strong>Azure Cognitive Services</strong>, después <strong>Azure AI Services</strong>, y desde noviembre de 2025 se llama <strong>Foundry Tools</strong> (disponibilidad general confirmada).</p>
+
+  <table>
+    <thead><tr><th>Servicio</th><th>Qué hace</th></tr></thead>
+    <tbody>
+      <tr><td>Speech</td><td>Texto↔voz (incluye el avatar de texto a voz del apéndice A), reconocimiento y traducción de voz en tiempo real.</td></tr>
+      <tr><td>Vision</td><td>Reconocimiento de imágenes, OCR, detección de objetos y caras.</td></tr>
+      <tr><td>Language</td><td>Análisis de sentimiento, extracción de entidades, resumen de texto.</td></tr>
+      <tr><td>Translator</td><td>Traducción automática de texto entre idiomas.</td></tr>
+      <tr><td>Document Intelligence</td><td>Extracción estructurada de campos desde documentos (facturas, formularios).</td></tr>
+      <tr><td>Content Understanding</td><td>Analiza contenido multimodal (texto, imagen, audio, video) y lo convierte en datos estructurados.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Foundry Tools es la "herramienta" de la sección 2 (la pieza que permite consultar datos y realizar acciones) cuando esa acción es perceptiva: oír, ver, leer un documento. Un agente moderno combina Foundry Tools (percepción puntual) con un modelo de lenguaje (razonamiento) y con el conocimiento de la sección 15 (tus datos): ninguna de las tres piezas sustituye a las otras dos.</p>
+  </div>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Estos servicios existían y funcionaban bien <em>antes</em> de ChatGPT y de los agentes conversacionales: no son "IA generativa disfrazada". Document Intelligence, por ejemplo, no genera texto nuevo: extrae campos concretos (fecha, monto, NIT) de un documento con una puntuación de confianza por campo.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué nombre tuvo este paquete de servicios antes de llamarse Foundry Tools, en orden?<br><em>Azure Cognitive Services → Azure AI Services → Foundry Tools (sección 5).</em></li>
+        <li>¿Por qué Document Intelligence no es lo mismo que pedirle a un modelo de lenguaje que "lea el documento y me diga el monto"?<br><em>Porque Document Intelligence es un servicio especializado y determinista en la extracción de campos (con confianza medible por campo), no un modelo generativo interpretando texto libre.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c12" class="inner">
+  <h2><span class="num">SECCIÓN 12</span>Azure OpenAI Service: el modelo con garantías empresariales</h2>
+  <p><strong>Azure OpenAI Service</strong> (hoy integrado en Foundry como parte de "Foundry Models") es la forma de usar los modelos de OpenAI (la familia GPT, embeddings, generación de imágenes, etc.) dentro de la infraestructura de Azure, en vez de llamar directamente a la API pública de OpenAI.</p>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Es la diferencia entre comprar un electrodoméstico importado directo del fabricante en otro país, y comprar ese mismo electrodoméstico a un distribuidor local que te da garantía, factura local, soporte en tu idioma y entrega en tu dirección. El aparato (el modelo) es el mismo; lo que cambia es todo lo que lo rodea.</p>
+  </div>
+
+  <p>Concretamente, lo que Azure añade sobre el modelo de OpenAI:</p>
+  <ul>
+    <li><strong>Seguridad de red</strong>: puede vivir dentro de una red virtual privada, sin exponerse a internet público.</li>
+    <li><strong>Cumplimiento y residencia de datos</strong>: eliges la región de Azure donde se procesa cada solicitud (conectado con los tipos de implementación de la sección 9).</li>
+    <li><strong>Identidad empresarial</strong>: autenticación con Microsoft Entra ID y <em>managed identities</em>, sin necesidad de manejar una clave de API suelta.</li>
+    <li><strong>Filtros de contenido</strong>: capas de moderación configurables antes y después del modelo.</li>
+    <li><strong>Facturación de Azure</strong>: un solo acuerdo de nivel de servicio y una sola factura, junto con el resto de tus recursos de Azure.</li>
+  </ul>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Azure OpenAI Service es la pieza "Modelo" de la sección 2, con un trato de empresa encima. Es también la pieza que, conectada a Azure AI Search (sección 13), permite construir RAG (sección 14): el modelo razona, pero no "sabe" tus documentos privados — eso se lo da la búsqueda.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué parte del modelo cambia al usar Azure OpenAI Service en vez de la API pública de OpenAI directamente?<br><em>Ninguna del modelo en sí; cambian las garantías alrededor: red privada, cumplimiento, identidad empresarial, filtros de contenido y facturación de Azure.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c13" class="inner">
+  <h2><span class="num">SECCIÓN 13</span>Azure AI Search: el motor de búsqueda detrás del RAG</h2>
+  <p><strong>Azure AI Search</strong> es el servicio que indexa tus propios datos (documentos, PDFs, páginas, filas de una base de datos) y permite buscarlos de tres formas, combinables entre sí:</p>
+  <table>
+    <thead><tr><th>Tipo de búsqueda</th><th>Cómo funciona</th></tr></thead>
+    <tbody>
+      <tr><td>Por palabra clave <span class="en">BM25</span></td><td>Coincidencia de términos exactos, como un buscador clásico.</td></tr>
+      <tr><td>Vectorial <span class="en">semantic / embeddings</span></td><td>Compara el <em>significado</em> de la consulta contra el significado de cada fragmento indexado (usando <em>embeddings</em>), aunque no compartan ni una palabra literal.</td></tr>
+      <tr><td>Híbrida</td><td>Combina las dos anteriores y, opcionalmente, aplica <em>reranking</em>: un segundo paso que reordena los mejores candidatos por relevancia real a la pregunta.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>Buscar por palabra clave es como buscar "dolor de cabeza" en el índice de un libro y solo encontrar la página que usa esas palabras exactas. Buscar por significado (vectorial) es como un bibliotecario que entiende que "me duele la cabeza" y "tengo cefalea" hablan de lo mismo, aunque no compartan ninguna palabra.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Azure AI Search es la pieza "Conocimiento" de la sección 2 cuando ese conocimiento vive en documentos propios. Es, además, la capa técnica que sostiene por debajo a Foundry IQ (sección 15): la documentación de Microsoft señala que, hoy, un recurso de Azure AI Search es requisito para crear bases de conocimiento en Foundry IQ.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>Un usuario busca "cómo recupero mi contraseña" pero el documento indexado dice literalmente "restablecer las credenciales de acceso". ¿Qué tipo de búsqueda encuentra ese documento y cuál no?<br><em>La búsqueda vectorial/semántica sí lo encuentra (entiende el significado); la búsqueda por palabra clave (BM25) probablemente no, porque no comparten términos exactos.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c14" class="inner">
+  <h2><span class="num">SECCIÓN 14</span>RAG: qué es y qué arquitecturas existen</h2>
+  <p><strong>RAG</strong> (<em>Retrieval-Augmented Generation</em>, generación aumentada por recuperación) es la técnica de, antes de que el modelo responda, buscar fragmentos relevantes en tus propios datos (sección 13) y metérselos en el contexto del prompt. Así, el modelo responde con información que nunca vio en su entrenamiento, y puede citar de dónde la sacó.</p>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>No existe una lista única y oficial de "8 arquitecturas de RAG": es una técnica con muchas variantes, y distintos cursos y artículos las agrupan de forma distinta. Lo que sigue es el conjunto de patrones más citado en la práctica, de más simple a más sofisticado; revisa con quien dictó tu clase si usó una numeración distinta de la misma idea.</p>
+  </div>
+
+  <table>
+    <thead><tr><th>#</th><th>Patrón</th><th>Idea</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>RAG simple <span class="en">naive RAG</span></td><td>Pregunta → búsqueda vectorial → el resultado se mete tal cual en el prompt.</td></tr>
+      <tr><td>2</td><td>RAG híbrido</td><td>Combina búsqueda por palabra clave y vectorial (sección 13) antes de responder.</td></tr>
+      <tr><td>3</td><td>Reescritura de consulta <span class="en">query rewriting / HyDE</span></td><td>El modelo reformula o amplía la pregunta original antes de buscar, para mejorar qué tanto se recupera.</td></tr>
+      <tr><td>4</td><td>RAG con reranking</td><td>Se recuperan muchos candidatos y un segundo modelo los reordena por relevancia real.</td></tr>
+      <tr><td>5</td><td>RAG multi-hop / iterativo</td><td>Varias rondas de búsqueda encadenadas, cada una informada por la anterior, para preguntas que no se resuelven con un solo fragmento.</td></tr>
+      <tr><td>6</td><td>GraphRAG</td><td>En vez de fragmentos sueltos, indexa un grafo de entidades y relaciones; útil cuando la respuesta depende de conexiones entre documentos distintos.</td></tr>
+      <tr><td>7</td><td>RAG correctivo <span class="en">Self-RAG</span></td><td>El modelo evalúa si lo recuperado realmente sirve para responder, y repite la búsqueda si no.</td></tr>
+      <tr><td>8</td><td>RAG agéntico <span class="en">agentic retrieval</span></td><td>Ya no es un pipeline fijo: un agente decide cuándo, qué y cuántas veces buscar, tratando la búsqueda como una herramienta más (sección 2). Es la recomendación actual de Microsoft para implementaciones nuevas de RAG en Azure AI Search.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>La evolución general va de "un pipeline fijo que siempre busca de la misma forma" a "un agente que decide cómo buscar según la pregunta". Azure AI Search ofrece hoy explícitamente dos enfoques: <strong>agentic retrieval</strong> (patrón 8) y la arquitectura de consulta original para RAG clásico (patrones 1–7), y la guía oficial recomienda empezar por agentic retrieval en proyectos nuevos.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué diferencia principal hay entre un RAG simple (patrón 1) y un RAG agéntico (patrón 8)?<br><em>El RAG simple sigue siempre el mismo pipeline (buscar una vez y responder); el RAG agéntico deja que un agente decida cuándo, qué y cuántas veces buscar, según la pregunta concreta.</em></li>
+        <li>¿Cuándo tendría sentido usar GraphRAG en vez de una búsqueda vectorial simple?<br><em>Cuando la respuesta depende de relaciones entre varias entidades o documentos distintos, no de un único fragmento de texto aislado.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c15" class="inner">
+  <h2><span class="num">SECCIÓN 15</span>Foundry IQ: la capa de conocimiento compartida</h2>
+  <p><strong>Foundry IQ</strong> llegó a disponibilidad general en junio de 2026. Es una capa de conocimiento y recuperación que varios agentes pueden compartir: en vez de que cada agente tenga su propia integración a cada fuente de datos, Foundry IQ unifica varias fuentes en una sola "base de conocimiento" y decide, para cada pregunta, qué fuente consultar y cómo.</p>
+
+  <table>
+    <thead><tr><th>Fuente</th><th>Qué conecta</th></tr></thead>
+    <tbody>
+      <tr><td>Work IQ</td><td>Datos de Microsoft 365: correo (Outlook), archivos, calendario. Es la pieza que hace posible que un agente "lea tus correos" sin una integración custom.</td></tr>
+      <tr><td>Fabric IQ</td><td>Datos empresariales que viven en Microsoft Fabric / OneLake (sección 16).</td></tr>
+      <tr><td>Web IQ</td><td>Contenido web externo.</td></tr>
+      <tr><td>File Search</td><td>Documentos que el propio usuario o la aplicación suben directamente.</td></tr>
+      <tr><td>Azure SQL / MCP</td><td>Conectores a bases de datos y a servidores que hablan el protocolo <em>Model Context Protocol</em> (MCP).</td></tr>
+    </tbody>
+  </table>
+
+  <p>Cómo funciona la recuperación, según la documentación de Microsoft: Foundry IQ <strong>planifica</strong> la consulta, <strong>elige</strong> qué fuentes consultar, ejecuta la búsqueda (a veces en varios pasos, como el RAG multi-hop de la sección 14), <strong>respeta los permisos</strong> del usuario que pregunta (no le muestra documentos a los que no tendría acceso) y devuelve resultados <strong>con citas</strong>. Se integra con Microsoft Foundry Agent Service a través de MCP, y la misma base de conocimiento puede servir a varios agentes distintos a la vez.</p>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Una guía de terceros (no la documentación oficial de Microsoft) señala que, por ahora, se necesita un recurso de Azure AI Search para poder crear bases de conocimiento en Foundry IQ: no reemplaza a Azure AI Search, se apoya en él.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>Foundry IQ es, en los términos de la sección 2, una versión "con permisos y con múltiples fuentes a la vez" de la pieza "Conocimiento". Si Azure AI Search (sección 13) resuelve "busca en este índice", Foundry IQ resuelve "decide en cuál de estas cinco fuentes buscar, respetando quién pregunta".</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué fuente de Foundry IQ permite que un agente lea el correo de un usuario sin una integración hecha a mano?<br><em>Work IQ.</em></li>
+        <li>¿Por qué Foundry IQ "respeta permisos" es importante en un agente empresarial compartido entre varios usuarios?<br><em>Porque evita que un agente filtre, sin querer, información de un documento al que la persona que pregunta no debería tener acceso.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="c16" class="inner">
+  <h2><span class="num">SECCIÓN 16</span>Warehouse, tabla de hechos, data lake y lakehouse</h2>
+  <p>Antes de que un agente pueda "consultar los datos de la empresa" (vía Fabric IQ, sección 15), esos datos tienen que vivir en algún lado. Hay tres formas típicas de almacenarlos, cada una resolviendo un problema distinto:</p>
+
+  <table>
+    <thead><tr><th>Almacén</th><th>Qué guarda</th><th>Para qué sirve</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Data warehouse</strong></td><td>Datos ya limpios y modelados para análisis, normalmente en <strong>esquema estrella</strong>.</td><td>Reportes y paneles rápidos y confiables, con una estructura que no cambia a cada rato.</td></tr>
+      <tr><td><strong>Data lake</strong></td><td>Datos crudos, en cualquier formato (estructurado, semiestructurado, no estructurado), sin modelar todavía.</td><td>Almacenamiento masivo y barato; ciencia de datos y machine learning, donde se necesita el dato "tal cual" antes de decidir cómo modelarlo.</td></tr>
+      <tr><td><strong>Lakehouse</strong></td><td>Lo mismo que un data lake por debajo, pero con capacidades de warehouse encima (transacciones ACID, esquema, rendimiento de consulta).</td><td>Evitar mantener dos copias separadas del mismo dato (una "cruda" en el lake y otra "modelada" en el warehouse).</td></tr>
+    </tbody>
+  </table>
+
+  <p>Dentro de un data warehouse, el <strong>esquema estrella</strong> organiza los datos en dos tipos de tabla:</p>
+  <ul>
+    <li><strong>Tabla de hechos</strong>: eventos medibles (una venta, una transacción, un clic), con las cantidades o métricas asociadas (monto, unidades).</li>
+    <li><strong>Tablas de dimensión</strong>: el contexto alrededor de cada hecho (qué cliente, qué producto, qué fecha, qué tienda), normalmente mucho más pequeñas que la tabla de hechos.</li>
+  </ul>
+
+  <div class="box analogy"><span class="lbl">Analogía</span>
+    <p>La tabla de hechos es el recibo de cada venta (solo el monto y las cantidades); las tablas de dimensión son las fichas aparte que describen al cliente, al producto y a la tienda que aparecen mencionados en ese recibo. Separarlas evita repetir, en cada recibo, toda la descripción completa del producto.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>El ejemplo de Microsoft para lakehouse es <strong>Microsoft Fabric con OneLake</strong>: una sola copia física de los datos que sirve tanto para analítica tipo warehouse como para ciencia de datos tipo lake, sin tener que duplicar el dato entre dos sistemas distintos. Esto conecta directo con <strong>Fabric IQ</strong> (sección 15): es la forma en que un agente de Foundry llega hasta estos datos empresariales.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Por qué una tabla de hechos suele ser mucho más grande (en número de filas) que sus tablas de dimensión?<br><em>Porque cada evento individual (cada venta, cada transacción) genera una fila nueva en la tabla de hechos, mientras que el número de clientes, productos o tiendas distintos crece mucho más despacio.</em></li>
+        <li>¿Qué problema concreto resuelve un lakehouse frente a mantener un data lake y un data warehouse por separado?<br><em>Evita duplicar el mismo dato en dos sistemas distintos (uno crudo, otro modelado), manteniendo una sola copia con capacidades de ambos.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="apa" class="inner">
+  <h2><span class="num">APÉNDICE A</span>El avatar que vende en vivo: qué se pudo verificar</h2>
+  <p>La clase mencionó un ejemplo llamativo: un avatar de IA, creado por Microsoft, vendiendo productos en TikTok en China. Este apéndice documenta, con honestidad, qué parte de esa afirmación se pudo confirmar y cuál no — precisamente porque esta biblioteca exige datos verificables (sección "convenciones de estilo" del instructivo del repositorio).</p>
+
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>No se encontró ninguna fuente que confirme una alianza de Microsoft con TikTok (o Douyin, su versión china) para vender productos con un avatar. Es posible que la clase se refiriera a otro ejemplo del mismo mercado, o a un caso distinto que no quedó claro en las diapositivas.</p>
+  </div>
+
+  <p>Lo que sí está documentado y es real:</p>
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p><strong>Azure AI Speech Text-to-Speech Avatar</strong> es un producto real de Microsoft: convierte texto en un video de un avatar fotorrealista hablando, con modo por lotes (video pregrabado) y modo en tiempo real (a través de "Voice Live" dentro de Foundry). El ejemplo que Microsoft documenta en China es la <strong>tienda de Microsoft en JD.com</strong>, que usa un avatar de IA como presentador de venta en vivo.</p>
+  </div>
+
+  <div class="box real"><span class="lbl">Ejemplo real</span>
+    <p>El uso de avatares de IA para vender en vivo sí es un fenómeno real y grande en China, aunque dominado por empresas chinas (Baidu, Xiaoice, Silicon Intelligence) y no por Microsoft: una fuente periodística reporta más de 993.000 empresas de avatares digitales registradas en el país, y la plataforma Douyin (la versión china de TikTok) exige desde 2025 que estos avatares se identifiquen con una etiqueta de "anfitrión de IA" y estén supervisados por una persona.</p>
+  </div>
+
+  <div class="box key"><span class="lbl">Idea clave</span>
+    <p>El dato seguro para estudiar es: <strong>Azure Speech Text-to-Speech Avatar existe, es de Microsoft, y tiene un caso documentado en JD.com (China)</strong>. La parte "TikTok" de la afirmación original no se pudo confirmar y debería verificarse directamente con quien dictó la clase antes de repetirla como un hecho.</p>
+  </div>
+
+  <details class="quiz"><summary>Autoevaluación</summary>
+    <div class="body">
+      <ol>
+        <li>¿Qué parte de "Microsoft creó un avatar que vende en TikTok en China" se pudo verificar y cuál no?<br><em>Se verificó que Microsoft tiene un producto de avatar (Text-to-Speech Avatar) con un caso real en JD.com en China; no se encontró ninguna fuente que vincule a Microsoft con TikTok/Douyin para este fin.</em></li>
+      </ol>
+    </div>
+  </details>
+</section>
+
+<section id="glosario" class="inner">
+  <h2><span class="num">CONSULTA</span>Glosario</h2>
+  <p>Términos de este tema, en orden alfabético.</p>
+  <input id="glossFilter" placeholder="Filtrar términos... (ej. RAG, Foundry IQ, lakehouse)" autocomplete="off">
+
+  <div class="az">
+    <a href="#gl-a">A</a><a href="#gl-b">B</a><a href="#gl-c">C</a><a href="#gl-d">D</a>
+    <a href="#gl-e">E</a><a href="#gl-f">F</a><a href="#gl-g">G</a><a href="#gl-l">L</a>
+    <a href="#gl-m">M</a><a href="#gl-o">O</a><a href="#gl-p">P</a><a href="#gl-r">R</a>
+    <a href="#gl-s">S</a><a href="#gl-t">T</a><a href="#gl-w">W</a>
+  </div>
+
+  <h4 class="gl-letter" id="gl-a">A</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Agente de IA</dt><dd>Aplicación que usa un modelo de IA para entender una meta, decidir los pasos a seguir y ejecutar acciones con herramientas, a diferencia de un chat que solo responde preguntas (sección 1).</dd></div>
+    <div class="ge"><dt>Agentic retrieval <span class="en">RAG agéntico</span></dt><dd>Patrón de RAG en el que un agente decide cuándo, qué y cuántas veces buscar, en vez de seguir un pipeline fijo. Recomendación actual de Microsoft para RAG nuevo (sección 14).</dd></div>
+    <div class="ge"><dt>Azure AI Search</dt><dd>Servicio de indexación y búsqueda (palabra clave, vectorial e híbrida) sobre datos propios; sostiene por debajo tanto el RAG clásico como Foundry IQ (sección 13).</dd></div>
+    <div class="ge"><dt>Azure OpenAI Service</dt><dd>Forma empresarial de usar los modelos de OpenAI dentro de Azure, con red privada, cumplimiento, identidad y filtros de contenido añadidos (sección 12).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-b">B</h4>
+  <dl class="gl">
+    <div class="ge"><dt>BM25</dt><dd>Algoritmo clásico de búsqueda por coincidencia de palabras clave, sin entender el significado de la consulta (sección 13).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-c">C</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Capacidad aprovisionada <span class="en">provisioned throughput</span></dt><dd>Modelo de cobro donde se paga por unidades de rendimiento reservadas, en vez de por tokens procesados (sección 10).</dd></div>
+    <div class="ge"><dt>Content Understanding</dt><dd>Servicio de Foundry Tools que analiza contenido multimodal (texto, imagen, audio, video) y lo convierte en datos estructurados (sección 11).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-d">D</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Data lake</dt><dd>Almacenamiento masivo de datos crudos, sin modelar, en cualquier formato (sección 16).</dd></div>
+    <div class="ge"><dt>Data warehouse</dt><dd>Almacén de datos limpios y modelados para análisis, típicamente en esquema estrella (sección 16).</dd></div>
+    <div class="ge"><dt>Document Intelligence</dt><dd>Servicio de Foundry Tools que extrae campos estructurados (fecha, monto, NIT) desde documentos, con una puntuación de confianza por campo (sección 11).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-e">E</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Embeddings</dt><dd>Representación numérica del significado de un texto, usada para comparar qué tan parecidos son dos fragmentos aunque no compartan palabras (sección 13).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-f">F</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Fabric IQ</dt><dd>Fuente de Foundry IQ que conecta a datos empresariales que viven en Microsoft Fabric / OneLake (sección 15, 16).</dd></div>
+    <div class="ge"><dt>Foundry Agent Service</dt><dd>Motor en tiempo de ejecución que conecta modelos, herramientas y frameworks para correr agentes dentro de Microsoft Foundry (sección 2, 5).</dd></div>
+    <div class="ge"><dt>Foundry IQ</dt><dd>Capa de conocimiento y recuperación compartida entre agentes, que unifica varias fuentes (Work IQ, Fabric IQ, Web IQ, File Search) con permisos y citas (sección 15).</dd></div>
+    <div class="ge"><dt>Foundry Tools</dt><dd>Paquete de servicios de IA prearmados (Speech, Vision, Language, Translator, Document Intelligence, Content Understanding); antes llamado Azure AI Services / Azure Cognitive Services (sección 11).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-g">G</h4>
+  <dl class="gl">
+    <div class="ge"><dt>GraphRAG</dt><dd>Patrón de RAG que indexa un grafo de entidades y relaciones en vez de fragmentos sueltos de texto (sección 14).</dd></div>
+    <div class="ge"><dt>Grupo de recursos <span class="en">resource group</span></dt><dd>Carpeta lógica que agrupa recursos de Azure relacionados, para administrarlos y borrarlos juntos (sección 6, 10).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-l">L</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Lakehouse</dt><dd>Almacenamiento que combina data lake (datos crudos) con capacidades de data warehouse (transacciones, esquema, rendimiento), evitando duplicar el dato en dos sistemas (sección 16).</dd></div>
+    <div class="ge"><dt>LLM <span class="en">Large Language Model, modelo de lenguaje</span></dt><dd>Modelo que genera texto a partir de una indicación; la pieza "Modelo" de un agente (sección 1, 2).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-m">M</h4>
+  <dl class="gl">
+    <div class="ge"><dt>MCP <span class="en">Model Context Protocol</span></dt><dd>Protocolo que permite a un agente conectarse a servidores externos de herramientas o datos de forma estandarizada; Foundry IQ lo usa para integrarse con Foundry Agent Service (sección 15).</dd></div>
+    <div class="ge"><dt>Microsoft Foundry</dt><dd>Plataforma unificada para construir aplicaciones de IA; nombre vigente desde noviembre de 2025 / enero de 2026 (antes Azure AI Foundry, antes Azure AI Studio) (sección 5).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-o">O</h4>
+  <dl class="gl">
+    <div class="ge"><dt>OneLake</dt><dd>Almacenamiento único de Microsoft Fabric que sostiene el modelo de lakehouse: una sola copia de los datos para analítica tipo warehouse y tipo lake (sección 16).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-p">P</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Proyecto de Foundry</dt><dd>Entorno de trabajo aislado para desarrollar aplicaciones y agentes dentro de un recurso de Foundry; varios proyectos pueden compartir un mismo recurso (sección 6).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-r">R</h4>
+  <dl class="gl">
+    <div class="ge"><dt>RAG <span class="en">Retrieval-Augmented Generation</span></dt><dd>Técnica de buscar información relevante en datos propios antes de que el modelo responda, para que pueda citar y razonar sobre datos que no vio en su entrenamiento (sección 14).</dd></div>
+    <div class="ge"><dt>Recurso de Foundry</dt><dd>Aporta procesamiento, almacenamiento, entrega de modelos y otros servicios; es la "cuenta" de Foundry dentro de un grupo de recursos de Azure (sección 6).</dd></div>
+    <div class="ge"><dt>Reranking</dt><dd>Segundo paso de una búsqueda híbrida que reordena los candidatos recuperados por relevancia real a la pregunta (sección 13, 14).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-s">S</h4>
+  <dl class="gl">
+    <div class="ge"><dt>SDK <span class="en">Software Development Kit</span></dt><dd>Biblioteca de código para llamar a un servicio desde una aplicación; Foundry ofrece el suyo propio, además del SDK de OpenAI y el de Foundry Tools (sección 8).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-t">T</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Tabla de dimensión</dt><dd>Tabla de un esquema estrella que describe el contexto de un hecho (cliente, producto, fecha, tienda) (sección 16).</dd></div>
+    <div class="ge"><dt>Tabla de hechos <span class="en">fact table</span></dt><dd>Tabla de un esquema estrella con los eventos medibles (ventas, transacciones) y sus métricas asociadas (sección 16).</dd></div>
+    <div class="ge"><dt>Tokens</dt><dd>Unidades en las que un modelo de lenguaje mide y cobra el texto de entrada y de salida (sección 10).</dd></div>
+  </dl>
+
+  <h4 class="gl-letter" id="gl-w">W</h4>
+  <dl class="gl">
+    <div class="ge"><dt>Web IQ</dt><dd>Fuente de Foundry IQ que añade contenido web externo a la recuperación (sección 15).</dd></div>
+    <div class="ge"><dt>Work IQ</dt><dd>Fuente de Foundry IQ que conecta a datos de Microsoft 365 (correo, archivos, calendario) (sección 15).</dd></div>
+  </dl>
+</section>
+
+<section id="refs" class="inner">
+  <h2><span class="num">CONSULTA</span>Fuentes y para seguir leyendo</h2>
+  <p>Este tema combina diapositivas de una clase de Código Facilito con verificación posterior contra estas fuentes:</p>
+  <ul>
+    <li>Microsoft Tech Community — <em>Building knowledge-grounded AI agents with Foundry IQ</em> y <em>Announcing the IQ Series: Foundry IQ</em>.</li>
+    <li>Microsoft Learn — <em>Understand AI agents and Microsoft Foundry Agent Service</em>; <em>Retrieval augmented generation</em> (Azure AI Search y Foundry); <em>Rag agentic architecture guide</em>.</li>
+    <li>Microsoft Learn — <em>Text to speech avatar overview</em> (Azure AI Speech).</li>
+    <li>Azure Updates — <em>AZ526132: Generally Available: Foundry Tools (rebrand from Azure AI Services)</em>.</li>
+    <li>Redmond Dispatch — cobertura de la disponibilidad general de Foundry IQ en Microsoft Copilot Studio.</li>
+    <li>Prensa especializada sobre el mercado chino de avatares de IA para venta en vivo (Sixth Tone, MIT Technology Review, CO/AI), usada únicamente para el apéndice A, con su limitación explícita de que son cifras autorreportadas por las empresas mencionadas.</li>
+    <li>Portal de casos de éxito de Microsoft: <code>microsoft.com/.../customers/search</code> (sección 4).</li>
+  </ul>
+  <div class="box warn"><span class="lbl">Ojo con esto</span>
+    <p>Varias de estas fuentes son blogs de Microsoft o de terceros, no siempre la documentación de referencia (Microsoft Learn). Antes de citar un dato de aquí en un contexto formal, vale la pena confirmarlo contra la documentación oficial vigente, porque esta plataforma cambia de nombre y de alcance con frecuencia (sección 5).</p>
+  </div>
+</section>
+
+<section id="herramientas" class="inner">
+  <h2><span class="num">PRÁCTICA</span>Herramientas interactivas</h2>
+  <p>Corre en tu navegador, sin enviar nada a ningún lado.</p>
+
+  <div class="tool">
+    <h4>1 · ¿Qué arquitectura de RAG necesitas?</h4>
+    <p>Responde qué tan compleja es tu pregunta típica y si necesitas que el sistema decida por sí mismo cómo buscar, y la herramienta te sugiere con cuál de los ocho patrones de la sección 14 empezar.</p>
+    <p><span class="pill">heurística simple</span><span class="pill">no sustituye tu juicio</span></p>
+    <select class="ctl" id="ragComplejidad">
+      <option value="simple">Preguntas directas sobre un solo documento o FAQ</option>
+      <option value="sinonimos">Preguntas con palabras distintas a las del documento (sinónimos)</option>
+      <option value="relaciones">Preguntas que cruzan información de varios documentos relacionados</option>
+      <option value="autonomo">Quiero que el propio agente decida cuándo y cómo buscar</option>
+    </select>
+    <div class="out" id="ragResultado"></div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<button id="top" title="Volver arriba">^</button>
+<button id="tocBtn" title="Abrir índice" aria-expanded="false">☰ Índice</button>
+<div id="sideOverlay"></div>
+
+<script src="_motor.js"></script>
+<script>
+/* Herramienta propia de este tema: sugerencia de arquitectura RAG según la sección 14.
+   Depende del motor compartido: espera que _motor.js ya se haya ejecutado. */
+(function () {
+  "use strict";
+  var escapeHtml = window.__guiaUtil.escapeHtml;
+
+  var SUGERENCIAS = {
+    simple: {
+      patron: "1 · RAG simple",
+      motivo: "Con preguntas directas sobre un solo documento o FAQ, una búsqueda vectorial básica (sin reranking ni varias rondas) suele bastar (sección 14)."
+    },
+    sinonimos: {
+      patron: "2 · RAG híbrido, o 3 · reescritura de consulta",
+      motivo: "Si la pregunta usa palabras distintas a las del documento, combinar palabra clave + vectorial (patrón 2) o dejar que el modelo reformule la consulta antes de buscar (patrón 3) mejora lo que se recupera (sección 13, 14)."
+    },
+    relaciones: {
+      patron: "5 · RAG multi-hop, o 6 · GraphRAG",
+      motivo: "Si la respuesta depende de cruzar varios documentos relacionados entre sí, conviene encadenar búsquedas (patrón 5) o indexar un grafo de entidades y relaciones (patrón 6) en vez de fragmentos sueltos (sección 14)."
+    },
+    autonomo: {
+      patron: "8 · RAG agéntico (agentic retrieval)",
+      motivo: "Si quieres que el propio sistema decida cuándo, qué y cuántas veces buscar, el patrón agéntico es la recomendación actual de Microsoft para RAG nuevo en Azure AI Search (sección 14)."
+    }
+  };
+
+  function actualizar() {
+    var clave = select.value;
+    var s = SUGERENCIAS[clave];
+    salida.innerHTML =
+      "<div class=\"row\"><span>Patrón sugerido</span><span>" + escapeHtml(s.patron) + "</span></div>" +
+      "<div class=\"row\"><span>Motivo</span><span>" + escapeHtml(s.motivo) + "</span></div>";
+  }
+
+  var select = document.getElementById("ragComplejidad");
+  var salida = document.getElementById("ragResultado");
+  if (select && salida) { select.addEventListener("change", actualizar); actualizar(); }
+})();
+</script>
+</body>
+</html>
